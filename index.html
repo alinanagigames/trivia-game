@@ -323,7 +323,7 @@ function HostApp({onExit}){
   const effectiveTotal=Math.min(totalQCount,enabledCount);
 
   const addTeam=()=>{
-    if(!tName.trim()||!tLeader.trim()||teams.length>=4)return;
+    if(!tName.trim()||teams.length>=4)return;
     setTeams(p=>[...p,{id:Date.now(),name:tName.trim(),leader:tLeader.trim(),members:tMembers.filter(m=>m.trim()),score:0,color:TEAM_COLORS[p.length]}]);
     setTName('');setTLeader('');setTMembers(Array(7).fill(''));
   };
@@ -460,11 +460,11 @@ function HostApp({onExit}){
           <span className="label">Add Team {teams.length+1}</span>
           <div className="grid2" style={{marginBottom:12}}>
             <div><span className="label">Team Name *</span><input className="inp" placeholder="e.g. The Brain Squad" value={tName} onChange={e=>setTName(e.target.value)}/></div>
-            <div><span className="label">Team Leader *</span><input className="inp" placeholder="Leader's name" value={tLeader} onChange={e=>setTLeader(e.target.value)}/></div>
+            <div><span className="label">Team Leader (optional)</span><input className="inp" placeholder="Leader's name" value={tLeader} onChange={e=>setTLeader(e.target.value)}/></div>
           </div>
           <span className="label">Members (optional)</span>
           <div className="grid2">{tMembers.map((m,i)=><input key={i} className="inp" placeholder={`Member ${i+1}`} value={m} style={{marginBottom:8}} onChange={e=>{const u=[...tMembers];u[i]=e.target.value;setTMembers(u)}}/>)}</div>
-          <button className="btn btn-yellow" style={{marginTop:14,width:'100%'}} onClick={addTeam} disabled={!tName.trim()||!tLeader.trim()}>+ Add Team</button>
+          <button className="btn btn-yellow" style={{marginTop:14,width:'100%'}} onClick={addTeam} disabled={!tName.trim()}>+ Add Team</button>
         </div>
       )}
       {teams.length>=2
@@ -856,21 +856,40 @@ function HostApp({onExit}){
             <div className="divider"/>
             <div style={{background:'rgba(255,230,0,.05)',border:'1px solid rgba(255,230,0,.15)',borderRadius:16,padding:16}}>
               <span className="label" style={{marginBottom:12,display:'block',color:'rgba(255,230,0,.7)'}}>Award {q.points} points to:</span>
-              <div className="award-grid">
+
+              {/* Per-team summary — always show what each team did */}
+              <div style={{marginBottom:14}}>
                 {teamsArr.map(t=>{
                   const sel=teamSelections[t.code];
                   const ans=teamAnswers[t.code];
                   const isCorrectSel=sel===q.answer;
                   const isCorrectAns=ans&&ans.answer?.toLowerCase().trim()===q.answer?.toLowerCase().trim();
-                  const highlight=isCorrectSel||isCorrectAns;
+                  const isCorrect=isCorrectSel||isCorrectAns;
+                  const display=sel||(ans?.answer)||null;
+                  return(
+                    <div key={t.code} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:12,marginBottom:7,background:isCorrect?'rgba(50,215,75,.1)':'rgba(255,255,255,.04)',border:`1.5px solid ${isCorrect?'rgba(50,215,75,.35)':`${t.color}25`}`}}>
+                      <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                      <span style={{fontWeight:900,flex:1,color:'rgba(255,255,255,.85)'}}>{t.name}</span>
+                      {display
+                        ?<span style={{fontWeight:900,fontSize:'.92rem',color:isCorrect?'#32D74B':'rgba(255,255,255,.65)'}}>{display} {isCorrect&&'✓'}</span>
+                        :<span style={{fontSize:'.78rem',color:'rgba(255,255,255,.22)',fontWeight:700,fontStyle:'italic'}}>no answer</span>
+                      }
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="award-grid">
+                {teamsArr.map(t=>{
+                  const sel=teamSelections[t.code];
+                  const ans=teamAnswers[t.code];
+                  const isCorrect=(sel===q.answer)||(ans&&ans.answer?.toLowerCase().trim()===q.answer?.toLowerCase().trim());
                   return(
                     <button key={t.code} className="award-btn"
-                      style={{background:highlight?`${t.color}28`:`${t.color}10`,color:t.color,borderColor:highlight?t.color:`${t.color}38`}}
+                      style={{background:isCorrect?`${t.color}28`:`${t.color}10`,color:t.color,borderColor:isCorrect?t.color:`${t.color}38`}}
                       onClick={()=>awardAndNext(t.code,q.points)}>
-                      {highlight&&<span style={{position:'absolute',top:-8,right:-8,background:'#32D74B',color:'#07071C',borderRadius:50,width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.65rem',fontWeight:900}}>✓</span>}
+                      {isCorrect&&<span style={{position:'absolute',top:-8,right:-8,background:'#32D74B',color:'#07071C',borderRadius:50,width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.65rem',fontWeight:900}}>✓</span>}
                       +{q.points} → {t.name}
-                      {sel&&<div style={{fontSize:'.72rem',opacity:.7,marginTop:3}}>picked: {sel}</div>}
-                      {!sel&&ans&&<div style={{fontSize:'.72rem',opacity:.7,marginTop:3}}>said: {ans.answer}</div>}
                     </button>
                   );
                 })}
