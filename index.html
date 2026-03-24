@@ -21,7 +21,6 @@ body{background:#07071C}
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
 
-// ── FIREBASE ──────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyA0fd5g08KALizxq8FPBTRfdCZxq0hBUgw",
   authDomain: "trivia-game-2c5a5.firebaseapp.com",
@@ -34,7 +33,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ── CONSTANTS ─────────────────────────────────────────────────────────────
 const TEAM_COLORS = ["#FF3B6B","#FF9F0A","#32D74B","#0A84FF"];
 const LETTERS = ["A","B","C","D"];
 const TC = { multiple:"#0A84FF", text:"#32D74B", buzzer:"#FF3B6B" };
@@ -44,59 +42,118 @@ const QB = {
   "🎬 Pop Culture": [
     {type:"multiple",question:"Which movie won Best Picture at the 2020 Oscars?",options:["1917","Joker","Parasite","The Irishman"],answer:"Parasite",points:10},
     {type:"multiple",question:"Who plays Iron Man in the Marvel Cinematic Universe?",options:["Chris Evans","Robert Downey Jr.","Chris Hemsworth","Mark Ruffalo"],answer:"Robert Downey Jr.",points:10},
-    {type:"text",question:"What Netflix show features kids battling monsters in the Upside Down?",answer:"Stranger Things",points:10},
     {type:"multiple",question:"Which artist headlined the 2023 Super Bowl halftime show?",options:["Jay-Z","Drake","Rihanna","Beyoncé"],answer:"Rihanna",points:10},
-    {type:"buzzer",question:"BUZZER: Name 3 Disney animated films from the 90s! First team wins!",answer:"Lion King, Aladdin, Mulan, Pocahontas, etc.",points:20},
+    {type:"multiple",question:"What is the name of Tony Stark's AI assistant in Iron Man?",options:["FRIDAY","VISION","JARVIS","ULTRON"],answer:"JARVIS",points:10},
+    {type:"multiple",question:"Which TV show features a chemistry teacher turned drug dealer?",options:["Ozark","Narcos","Dexter","Breaking Bad"],answer:"Breaking Bad",points:10},
+    {type:"multiple",question:"Which movie franchise features the character Jack Sparrow?",options:["Indiana Jones","The Mummy","National Treasure","Pirates of the Caribbean"],answer:"Pirates of the Caribbean",points:10},
+    {type:"multiple",question:"Who voiced Woody in the Toy Story franchise?",options:["Tim Allen","Billy Crystal","Robin Williams","Tom Hanks"],answer:"Tom Hanks",points:10},
+    {type:"multiple",question:"Which streaming platform produced the show 'The Crown'?",options:["HBO","Amazon Prime","Disney+","Netflix"],answer:"Netflix",points:10},
+    {type:"multiple",question:"Which movie is famous for the line 'I see dead people'?",options:["The Others","Poltergeist","Get Out","The Sixth Sense"],answer:"The Sixth Sense",points:10},
+    {type:"multiple",question:"What is the name of the lion in The Lion King?",options:["Mufasa","Timon","Pumba","Simba"],answer:"Simba",points:10},
+    {type:"text",question:"What Netflix show features kids battling monsters in the Upside Down?",answer:"Stranger Things",points:10},
+    {type:"text",question:"What is the name of the fictional kingdom in Frozen?",answer:"Arendelle",points:10},
+    {type:"text",question:"Which actor played the Joker in the 2019 standalone film?",answer:"Joaquin Phoenix",points:10},
+    {type:"buzzer",question:"BUZZER: Name 3 Disney animated films from the 90s! First team to buzz and get all 3 wins!",answer:"Lion King, Aladdin, Mulan, Pocahontas, Tarzan, etc.",points:20},
+    {type:"buzzer",question:"BUZZER: Name 4 actors who have played Batman in movies! First team wins!",answer:"Keaton, Kilmer, Clooney, Bale, Affleck, Pattinson",points:20},
   ],
   "🔬 Science & Nature": [
     {type:"multiple",question:"What is the chemical symbol for Gold?",options:["Go","Gd","Au","Ag"],answer:"Au",points:10},
     {type:"multiple",question:"How many bones are in the adult human body?",options:["186","206","226","246"],answer:"206",points:10},
-    {type:"text",question:"What gas do plants absorb during photosynthesis?",answer:"Carbon dioxide (CO2)",points:10},
     {type:"multiple",question:"What planet is known as the Red Planet?",options:["Venus","Jupiter","Saturn","Mars"],answer:"Mars",points:10},
+    {type:"multiple",question:"What is the speed of light approximately?",options:["200,000 km/s","150,000 km/s","400,000 km/s","300,000 km/s"],answer:"300,000 km/s",points:10},
+    {type:"multiple",question:"Which organ produces insulin in the human body?",options:["Liver","Kidney","Stomach","Pancreas"],answer:"Pancreas",points:10},
+    {type:"multiple",question:"What is the most abundant gas in Earth's atmosphere?",options:["Oxygen","Carbon dioxide","Hydrogen","Nitrogen"],answer:"Nitrogen",points:10},
+    {type:"multiple",question:"How many chromosomes does a typical human cell have?",options:["23","36","52","46"],answer:"46",points:10},
+    {type:"multiple",question:"What is the hardest natural substance on Earth?",options:["Gold","Iron","Quartz","Diamond"],answer:"Diamond",points:10},
+    {type:"multiple",question:"What force keeps planets in orbit around the Sun?",options:["Magnetism","Friction","Nuclear force","Gravity"],answer:"Gravity",points:10},
+    {type:"multiple",question:"How many hearts does an octopus have?",options:["1","2","3","4"],answer:"3",points:10},
+    {type:"text",question:"What gas do plants absorb from the atmosphere during photosynthesis?",answer:"Carbon dioxide (CO2)",points:10},
+    {type:"text",question:"What is the powerhouse of the cell?",answer:"Mitochondria",points:10},
+    {type:"text",question:"What is the chemical formula for water?",answer:"H2O",points:10},
     {type:"buzzer",question:"BUZZER: First team to name 5 elements from the periodic table wins!",answer:"Any 5 valid elements",points:20},
+    {type:"buzzer",question:"BUZZER: Name 4 planets in our solar system! First team wins!",answer:"Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune",points:20},
   ],
   "📚 History": [
-    {type:"multiple",question:"In what year did World War II end?",options:["1943","1944","1945","1946"],answer:"1945",points:10},
+    {type:"multiple",question:"In what year did World War II end?",options:["1943","1944","1946","1945"],answer:"1945",points:10},
     {type:"multiple",question:"Who was the first President of the United States?",options:["John Adams","Thomas Jefferson","Benjamin Franklin","George Washington"],answer:"George Washington",points:10},
-    {type:"text",question:"What ship sank in 1912 after hitting an iceberg?",answer:"Titanic",points:10},
-    {type:"multiple",question:"The Berlin Wall fell in which year?",options:["1987","1988","1989","1990"],answer:"1989",points:10},
-    {type:"buzzer",question:"BUZZER: Name 3 ancient civilizations! First team to buzz wins!",answer:"Roman, Egyptian, Greek, Mayan, Persian, etc.",points:20},
+    {type:"multiple",question:"The Berlin Wall fell in which year?",options:["1987","1988","1990","1989"],answer:"1989",points:10},
+    {type:"multiple",question:"Which country was first to give women the right to vote?",options:["USA","UK","France","New Zealand"],answer:"New Zealand",points:10},
+    {type:"multiple",question:"Who was the first person to walk on the Moon?",options:["Buzz Aldrin","Yuri Gagarin","John Glenn","Neil Armstrong"],answer:"Neil Armstrong",points:10},
+    {type:"multiple",question:"In which year did Nelson Mandela become President of South Africa?",options:["1990","1992","1996","1994"],answer:"1994",points:10},
+    {type:"multiple",question:"Which empire was ruled by Julius Caesar?",options:["Greek","Ottoman","Persian","Roman"],answer:"Roman",points:10},
+    {type:"multiple",question:"Which country did Adolf Hitler originally come from?",options:["Germany","Poland","Switzerland","Austria"],answer:"Austria",points:10},
+    {type:"multiple",question:"Who painted the Mona Lisa?",options:["Michelangelo","Raphael","Caravaggio","Leonardo da Vinci"],answer:"Leonardo da Vinci",points:10},
+    {type:"multiple",question:"In which city was the Titanic built?",options:["London","Glasgow","Liverpool","Belfast"],answer:"Belfast",points:10},
+    {type:"text",question:"What was the name of the first artificial satellite launched into space?",answer:"Sputnik",points:10},
+    {type:"text",question:"Who was the first woman to win a Nobel Prize?",answer:"Marie Curie",points:10},
+    {type:"text",question:"What year did the First World War begin?",answer:"1914",points:10},
+    {type:"buzzer",question:"BUZZER: Name 3 ancient civilizations! First team to buzz and name all 3 wins!",answer:"Roman, Egyptian, Greek, Mayan, Persian, Aztec, etc.",points:20},
+    {type:"buzzer",question:"BUZZER: Name 3 Allied countries in WW2! First team wins!",answer:"USA, UK, France, Soviet Union, Canada, Australia, etc.",points:20},
   ],
   "⚽ Sports": [
-    {type:"multiple",question:"How many players are on a soccer team on the field?",options:["9","10","11","12"],answer:"11",points:10},
-    {type:"multiple",question:"In which country was the 2022 FIFA World Cup held?",options:["Russia","Brazil","Qatar","UAE"],answer:"Qatar",points:10},
-    {type:"text",question:"What sport is played at Wimbledon?",answer:"Tennis",points:10},
-    {type:"multiple",question:"How many rings are on the Olympic flag?",options:["4","5","6","7"],answer:"5",points:10},
+    {type:"multiple",question:"How many players are on a soccer team on the field?",options:["9","10","12","11"],answer:"11",points:10},
+    {type:"multiple",question:"In which country was the 2022 FIFA World Cup held?",options:["Russia","Brazil","UAE","Qatar"],answer:"Qatar",points:10},
+    {type:"multiple",question:"How many rings are on the Olympic flag?",options:["4","6","7","5"],answer:"5",points:10},
+    {type:"multiple",question:"Which country has won the most FIFA World Cups?",options:["Germany","Argentina","Italy","Brazil"],answer:"Brazil",points:10},
+    {type:"multiple",question:"In basketball how many points is a standard field goal worth?",options:["1","3","4","2"],answer:"2",points:10},
+    {type:"multiple",question:"How long is a standard marathon?",options:["38.2km","40.2km","44.2km","42.2km"],answer:"42.2km",points:10},
+    {type:"multiple",question:"How many players are on a rugby union team?",options:["11","13","17","15"],answer:"15",points:10},
+    {type:"multiple",question:"Which country invented the sport of cricket?",options:["Australia","India","South Africa","England"],answer:"England",points:10},
+    {type:"multiple",question:"How many Grand Slam tournaments are there in tennis?",options:["2","3","5","4"],answer:"4",points:10},
+    {type:"multiple",question:"In which sport would you perform a 'slam dunk'?",options:["Volleyball","Handball","Football","Basketball"],answer:"Basketball",points:10},
+    {type:"text",question:"What country does footballer Lionel Messi come from?",answer:"Argentina",points:10},
+    {type:"text",question:"How many players are on a volleyball team on the court?",answer:"6",points:10},
+    {type:"text",question:"In what sport do competitors use a shuttlecock?",answer:"Badminton",points:10},
     {type:"buzzer",question:"BUZZER: Name 5 Summer Olympic sports! First team wins!",answer:"Any valid Olympic sports",points:20},
+    {type:"buzzer",question:"BUZZER: Name 4 sports played at the Winter Olympics! First team wins!",answer:"Skiing, Ice Hockey, Figure Skating, Bobsled, Curling, etc.",points:20},
   ],
   "🎵 Music": [
-    {type:"multiple",question:"Which artist released the album 'Thriller'?",options:["Prince","Michael Jackson","Madonna","Whitney Houston"],answer:"Michael Jackson",points:10},
-    {type:"multiple",question:"How many strings does a standard acoustic guitar have?",options:["4","5","6","7"],answer:"6",points:10},
+    {type:"multiple",question:"Which artist released the album 'Thriller'?",options:["Prince","Madonna","Whitney Houston","Michael Jackson"],answer:"Michael Jackson",points:10},
+    {type:"multiple",question:"How many strings does a standard acoustic guitar have?",options:["4","5","7","6"],answer:"6",points:10},
+    {type:"multiple",question:"Which country does the band BTS originate from?",options:["Japan","China","Thailand","South Korea"],answer:"South Korea",points:10},
+    {type:"multiple",question:"Which artist is known as the 'Queen of Pop'?",options:["Beyoncé","Whitney Houston","Rihanna","Madonna"],answer:"Madonna",points:10},
+    {type:"multiple",question:"What instrument does Elton John famously play?",options:["Guitar","Drums","Violin","Piano"],answer:"Piano",points:10},
+    {type:"multiple",question:"Which band performed 'Bohemian Rhapsody'?",options:["The Beatles","Led Zeppelin","The Rolling Stones","Queen"],answer:"Queen",points:10},
+    {type:"multiple",question:"How many members were in the original Destiny's Child group?",options:["2","4","5","3"],answer:"3",points:10},
+    {type:"multiple",question:"Which artist released the album '25' in 2015?",options:["Taylor Swift","Beyoncé","Rihanna","Adele"],answer:"Adele",points:10},
+    {type:"multiple",question:"What is the best-selling album of all time?",options:["Back in Black","The Dark Side of the Moon","Led Zeppelin IV","Thriller"],answer:"Thriller",points:10},
+    {type:"multiple",question:"Which rapper's real name is Aubrey Graham?",options:["Kanye West","Jay-Z","Kendrick Lamar","Drake"],answer:"Drake",points:10},
     {type:"text",question:"What iconic band is Freddie Mercury associated with?",answer:"Queen",points:10},
-    {type:"multiple",question:"Which country does BTS originate from?",options:["Japan","China","South Korea","Thailand"],answer:"South Korea",points:10},
-    {type:"buzzer",question:"BUZZER: Hum a famous tune — opposing team guesses! Host picks the best.",answer:"Host judges",points:20},
+    {type:"text",question:"What musical instrument has 88 keys?",answer:"Piano",points:10},
+    {type:"text",question:"Which singer is known as the 'King of Rock and Roll'?",answer:"Elvis Presley",points:10},
+    {type:"buzzer",question:"BUZZER: Hum a famous tune — the other teams guess the song! Host picks the best performance.",answer:"Host judges",points:20},
+    {type:"buzzer",question:"BUZZER: Name 5 artists who have won a Grammy for Album of the Year! First team wins!",answer:"Various — host judges validity",points:20},
   ],
   "🌍 Geography": [
     {type:"multiple",question:"What is the capital city of Australia?",options:["Sydney","Melbourne","Brisbane","Canberra"],answer:"Canberra",points:10},
-    {type:"multiple",question:"Which is the longest river in the world?",options:["Amazon","Congo","Nile","Yangtze"],answer:"Nile",points:10},
-    {type:"text",question:"What is the smallest country in the world by area?",answer:"Vatican City",points:10},
+    {type:"multiple",question:"Which is the longest river in the world?",options:["Amazon","Congo","Yangtze","Nile"],answer:"Nile",points:10},
     {type:"multiple",question:"Which is the largest ocean?",options:["Atlantic","Indian","Arctic","Pacific"],answer:"Pacific",points:10},
-    {type:"buzzer",question:"BUZZER: First team to name 5 countries in South America wins!",answer:"Brazil, Argentina, Colombia, Chile, Peru, etc.",points:20},
+    {type:"multiple",question:"What is the capital city of Canada?",options:["Toronto","Vancouver","Montreal","Ottawa"],answer:"Ottawa",points:10},
+    {type:"multiple",question:"Which country has the largest population in the world?",options:["USA","India","Indonesia","China"],answer:"India",points:10},
+    {type:"multiple",question:"What is the tallest mountain in the world?",options:["K2","Kangchenjunga","Lhotse","Mount Everest"],answer:"Mount Everest",points:10},
+    {type:"multiple",question:"Which continent is the Sahara Desert located on?",options:["Asia","South America","Australia","Africa"],answer:"Africa",points:10},
+    {type:"multiple",question:"What is the capital of Brazil?",options:["São Paulo","Rio de Janeiro","Salvador","Brasília"],answer:"Brasília",points:10},
+    {type:"multiple",question:"Which country has the most natural lakes in the world?",options:["Russia","USA","Finland","Canada"],answer:"Canada",points:10},
+    {type:"multiple",question:"What is the smallest continent by land area?",options:["Europe","Antarctica","South America","Australia"],answer:"Australia",points:10},
+    {type:"text",question:"What is the smallest country in the world by area?",answer:"Vatican City",points:10},
+    {type:"text",question:"What is the capital city of Japan?",answer:"Tokyo",points:10},
+    {type:"text",question:"Which river flows through Egypt?",answer:"The Nile",points:10},
+    {type:"buzzer",question:"BUZZER: First team to name 5 countries in South America wins!",answer:"Brazil, Argentina, Colombia, Chile, Peru, Venezuela, etc.",points:20},
+    {type:"buzzer",question:"BUZZER: Name 5 countries in Africa! First team wins!",answer:"Nigeria, Kenya, Egypt, South Africa, Ghana, Ethiopia, etc.",points:20},
   ],
 };
 
 const DEF_BONUSES = [
-  {id:0,emoji:"💃",title:"Dance Off!",description:"Each team performs a 30-second group dance. Host awards up to 30 bonus points!"},
-  {id:1,emoji:"🎯",title:"Dare Time!",description:"Last-place team picks a dare for the leader. Host awards 25 points for completing it."},
-  {id:2,emoji:"⚔️",title:"Head-to-Head!",description:"Top 2 teams go head-to-head! First correct answer out loud wins 30 points!"},
-  {id:3,emoji:"🎤",title:"Lip Sync Battle!",description:"Each team performs a lip sync to a song the host picks. Best performance wins 30 points!"},
-  {id:4,emoji:"🎭",title:"Charades!",description:"One member from each team does charades simultaneously. Most correct guesses in 60s wins 30 pts."},
-  {id:5,emoji:"🎨",title:"Draw It!",description:"Team leaders draw a secret word — their team guesses. Best correct guess in 45s wins 30 points!"},
-  {id:6,emoji:"⚡",title:"Lightning Round!",description:"Leaders answer rapid-fire questions for 60 seconds. Each correct = 5 points!"},
-  {id:7,emoji:"🤔",title:"Riddle Me This!",description:"Host reads a riddle. First team to buzz with the correct answer wins 25 bonus points!"},
+  {id:0,emoji:"💃",title:"Dance Off!",description:"Each team performs a 30-second group dance. Host awards up to 30 bonus points based on energy, creativity, and teamwork!"},
+  {id:1,emoji:"🎯",title:"Dare Time!",description:"The team in last place picks a dare for the leading team to complete. Host awards 25 points for completing it."},
+  {id:2,emoji:"⚔️",title:"Head-to-Head!",description:"Top 2 teams go head-to-head! Both teams answer a rapid question out loud — first correct answer wins 30 points!"},
+  {id:3,emoji:"🎤",title:"Lip Sync Battle!",description:"Each team performs a lip sync to a song the host picks. Best performance wins 30 bonus points!"},
+  {id:4,emoji:"🎭",title:"Charades!",description:"One member from each team does charades simultaneously. Most correct guesses in 60 seconds wins 30 points."},
+  {id:5,emoji:"🎨",title:"Draw It!",description:"One member from each team draws a secret word — their team guesses. Best correct guess in 45 seconds wins 30 points!"},
+  {id:6,emoji:"⚡",title:"Lightning Round!",description:"All teams answer rapid-fire questions for 60 seconds. Each correct answer = 5 points for their team!"},
+  {id:7,emoji:"🤔",title:"Riddle Me This!",description:"Host reads a riddle aloud. First team to buzz in with the correct answer wins 25 bonus points!"},
 ];
 
-// ── CSS ───────────────────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;700;800;900&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -118,8 +175,6 @@ const CSS = `
 .btn-ghost:hover{background:rgba(255,255,255,.12)}
 .btn-danger{background:rgba(255,59,107,.1);color:#FF3B6B;border:1.5px solid rgba(255,59,107,.28)}
 .btn-danger:hover{background:rgba(255,59,107,.18)}
-.btn-green{background:rgba(50,215,75,.15);color:#32D74B;border:1.5px solid rgba(50,215,75,.35)}
-.btn-green:hover{background:rgba(50,215,75,.25)}
 .btn-sm{padding:7px 16px;font-size:.78rem}
 .btn-full{width:100%;padding:16px;font-size:1.05rem}
 .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px;margin-bottom:14px}
@@ -146,27 +201,21 @@ select.inp option{background:#1a1a3a;color:#fff}
 .opt.picked{background:rgba(255,230,0,.1);border-color:#FFE600}
 .opt.right{background:rgba(50,215,75,.18);border-color:#32D74B;cursor:default}
 .opt.wrong{background:rgba(255,59,107,.1);border-color:#FF3B6B;opacity:.5;cursor:default}
-.opt-player{cursor:default}
-.opt-player:hover{transform:none}
 .letter{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:900;flex-shrink:0}
 .buzz-btn{width:100%;min-height:90px;padding:20px;border-radius:20px;font-family:'Boogaloo',cursive;font-size:1.6rem;cursor:pointer;border:3px solid;transition:all .15s;text-align:center;margin-bottom:10px}
 .buzz-btn:hover{transform:scale(1.02)}
 .buzz-btn:active{transform:scale(.97)}
-.buzz-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
-.host-buzz-btn{flex:1;min-height:72px;padding:16px;border-radius:16px;font-family:'Boogaloo',cursive;font-size:1.2rem;cursor:pointer;border:2.5px solid;transition:all .15s;text-align:center}
-.host-buzz-btn:hover{transform:scale(1.03)}
-.host-buzz-btn:active{transform:scale(.97)}
 .correct-box{padding:14px;border-radius:13px;background:rgba(50,215,75,.12);border:2px solid rgba(50,215,75,.28);margin-bottom:16px}
 .award-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
 @media(max-width:480px){.award-grid{grid-template-columns:1fr}}
-.award-btn{padding:12px 10px;border-radius:13px;border:2px solid;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:.88rem;transition:all .18s;text-align:center}
+.award-btn{padding:12px 10px;border-radius:13px;border:2px solid;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:.88rem;transition:all .18s;text-align:center;position:relative}
 .award-btn:hover{transform:translateY(-2px)}
 .bonus-wrap{background:linear-gradient(135deg,rgba(255,159,10,.14),rgba(255,59,107,.13));border:2px solid rgba(255,159,10,.35);border-radius:26px;padding:36px 32px;text-align:center;max-width:480px;width:100%}
 .bonus-emoji{font-size:4rem;display:block;margin-bottom:12px;animation:bob .7s ease-in-out infinite alternate}
 @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-10px)}}
 .bonus-title{font-family:'Boogaloo',cursive;font-size:2.2rem;color:#FFE600;margin-bottom:10px}
 .bonus-desc{color:rgba(255,255,255,.7);line-height:1.65;font-size:.97rem;margin-bottom:24px}
-.lb-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:16px;margin-bottom:9px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03)}
+.lb-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:16px;margin-bottom:9px}
 .lb-rank{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;flex-shrink:0}
 .fade{animation:fadeUp .3s ease forwards}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -192,9 +241,6 @@ select.inp option{background:#1a1a3a;color:#fff}
 .code-box{background:rgba(255,230,0,.08);border:2px solid rgba(255,230,0,.3);border-radius:16px;padding:20px;text-align:center;margin-bottom:14px}
 .code-big{font-family:'Boogaloo',cursive;font-size:3rem;color:#FFE600;letter-spacing:.15em}
 .player-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px 24px;width:100%;max-width:420px}
-.buzz-panel{background:rgba(255,59,107,.07);border:1.5px solid rgba(255,59,107,.2);border-radius:16px;padding:16px;margin-bottom:14px}
-.answer-panel{background:rgba(50,215,75,.07);border:1.5px solid rgba(50,215,75,.2);border-radius:16px;padding:16px;margin-bottom:14px}
-.player-score-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
 .waiting-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FFE600;margin:0 3px;animation:pulse 1.2s ease-in-out infinite}
 .waiting-dot:nth-child(2){animation-delay:.2s}
 .waiting-dot:nth-child(3){animation-delay:.4s}
@@ -203,47 +249,26 @@ select.inp option{background:#1a1a3a;color:#fff}
 .role-card:hover{transform:translateY(-4px);border-color:rgba(255,230,0,.4);background:rgba(255,230,0,.06)}
 .role-icon{font-size:3rem;margin-bottom:12px;display:block}
 .player-joined{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:11px;margin-bottom:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.sub-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:13px;margin-bottom:7px;transition:all .2s}
 `;
 
-// ── HELPERS ───────────────────────────────────────────────────────────────
-function genCode(len) {
-  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({length:len},()=>c[Math.floor(Math.random()*c.length)]).join('');
-}
+function genCode(len){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:len},()=>c[Math.floor(Math.random()*c.length)]).join('');}
+function toArr(obj){if(!obj)return[];if(Array.isArray(obj))return obj;return Object.keys(obj).sort((a,b)=>+a-+b).map(k=>obj[k]);}
+function toTeamsArr(obj){if(!obj)return[];return Object.entries(obj).map(([code,t])=>({...t,code}));}
 
-function toArr(obj) {
-  if (!obj) return [];
-  if (Array.isArray(obj)) return obj;
-  return Object.keys(obj).sort((a,b)=>+a-+b).map(k=>obj[k]);
-}
-
-function toTeamsArr(obj) {
-  if (!obj) return [];
-  return Object.entries(obj).map(([code,t])=>({...t,code}));
-}
-
-// ── MAIN APP ──────────────────────────────────────────────────────────────
-function App() {
-  const [role, setRole] = useState(null);
-  const styleEl = useRef(null);
-
+function App(){
+  const [role,setRole]=useState(null);
+  const styleEl=useRef(null);
   useEffect(()=>{
-    if (!styleEl.current) {
-      const el = document.createElement('style');
-      el.textContent = CSS;
-      document.head.appendChild(el);
-      styleEl.current = el;
-    }
+    if(!styleEl.current){const el=document.createElement('style');el.textContent=CSS;document.head.appendChild(el);styleEl.current=el;}
   },[]);
-
-  if (!role) return <WelcomeScreen onSelect={setRole}/>;
-  if (role==='host') return <HostApp onExit={()=>setRole(null)}/>;
+  if(!role)return <WelcomeScreen onSelect={setRole}/>;
+  if(role==='host')return <HostApp onExit={()=>setRole(null)}/>;
   return <PlayerApp onExit={()=>setRole(null)}/>;
 }
 
-// ── WELCOME SCREEN ────────────────────────────────────────────────────────
-function WelcomeScreen({onSelect}) {
-  return (
+function WelcomeScreen({onSelect}){
+  return(
     <div className="app center">
       <h1 className="game-title">TRIVIA NIGHT</h1>
       <p className="subtitle">The Ultimate Party Quiz Game</p>
@@ -251,225 +276,171 @@ function WelcomeScreen({onSelect}) {
         <div className="role-card" onClick={()=>onSelect('host')}>
           <span className="role-icon">🎮</span>
           <div style={{fontFamily:"'Boogaloo',cursive",fontSize:"1.6rem",color:"#FFE600",marginBottom:8}}>I'm the Host</div>
-          <div style={{fontSize:".85rem",color:"rgba(255,255,255,.45)",lineHeight:1.5}}>Create a game, set up teams, control the questions and award points</div>
+          <div style={{fontSize:".85rem",color:"rgba(255,255,255,.45)",lineHeight:1.5}}>Create a game, set up teams, control questions and award points</div>
         </div>
         <div className="role-card" onClick={()=>onSelect('player')}>
           <span className="role-icon">🙋</span>
           <div style={{fontFamily:"'Boogaloo',cursive",fontSize:"1.6rem",color:"#0A84FF",marginBottom:8}}>I'm a Player</div>
-          <div style={{fontSize:".85rem",color:"rgba(255,255,255,.45)",lineHeight:1.5}}>Join a game with a room code, buzz in and answer questions with your team</div>
+          <div style={{fontSize:".85rem",color:"rgba(255,255,255,.45)",lineHeight:1.5}}>Join with a room code, buzz in and answer questions with your team</div>
         </div>
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════════
-// HOST APP
-// ══════════════════════════════════════════════════════════════════════════
-function HostApp({onExit}) {
-  const [screen, setScreen] = useState('teams');
-  const [configTab, setConfigTab] = useState('categories');
-  const [teams, setTeams] = useState([]);
-  const [selCats, setSelCats] = useState(Object.keys(QB).slice(0,3));
-  const [disabledQs, setDisabledQs] = useState(new Set());
-  const [customQs, setCustomQs] = useState([]);
-  const [totalQCount, setTotalQCount] = useState(12);
-  const [bonusFreq, setBonusFreq] = useState(3);
-  const [bonuses, setBonuses] = useState(DEF_BONUSES.map(b=>({...b})));
-  const [expandedCat, setExpandedCat] = useState(null);
-  const [tName,setTName]=useState(''); const [tLeader,setTLeader]=useState('');
+function HostApp({onExit}){
+  const [screen,setScreen]=useState('teams');
+  const [configTab,setConfigTab]=useState('categories');
+  const [teams,setTeams]=useState([]);
+  const [selCats,setSelCats]=useState(Object.keys(QB).slice(0,3));
+  const [disabledQs,setDisabledQs]=useState(new Set());
+  const [customQs,setCustomQs]=useState([]);
+  const [totalQCount,setTotalQCount]=useState(12);
+  const [bonusFreq,setBonusFreq]=useState(3);
+  const [bonuses,setBonuses]=useState(DEF_BONUSES.map(b=>({...b})));
+  const [expandedCat,setExpandedCat]=useState(null);
+  const [tName,setTName]=useState('');const [tLeader,setTLeader]=useState('');
   const [tMembers,setTMembers]=useState(Array(7).fill(''));
   const [showCqForm,setShowCqForm]=useState(false);
-  const [cqText,setCqText]=useState(''); const [cqType,setCqType]=useState('multiple');
-  const [cqOpts,setCqOpts]=useState(['','','','']); const [cqAns,setCqAns]=useState('');
-  const [cqPts,setCqPts]=useState(10);
+  const [cqText,setCqText]=useState('');const [cqType,setCqType]=useState('multiple');
+  const [cqOpts,setCqOpts]=useState(['','','','']);const [cqAns,setCqAns]=useState('');const [cqPts,setCqPts]=useState(10);
   const [showBonusForm,setShowBonusForm]=useState(false);
-  const [cbTitle,setCbTitle]=useState(''); const [cbDesc,setCbDesc]=useState(''); const [cbEmoji,setCbEmoji]=useState('🎯');
+  const [cbTitle,setCbTitle]=useState('');const [cbDesc,setCbDesc]=useState('');const [cbEmoji,setCbEmoji]=useState('🎯');
   const [roomCode,setRoomCode]=useState('');
   const [gameState,setGameState]=useState(null);
   const [paused,setPaused]=useState(false);
-  const listenerRef = useRef(null);
+  const listenerRef=useRef(null);
 
-  const toggleQ = key => setDisabledQs(p=>{const n=new Set(p);n.has(key)?n.delete(key):n.add(key);return n;});
+  const toggleQ=key=>setDisabledQs(p=>{const n=new Set(p);n.has(key)?n.delete(key):n.add(key);return n;});
 
-  const enabledCount = (()=>{
+  const enabledCount=(()=>{
     let c=0;
     selCats.forEach(cat=>(QB[cat]||[]).forEach((_,i)=>{if(!disabledQs.has(`${cat}__${i}`))c++;}));
     customQs.forEach((_,i)=>{if(!disabledQs.has(`custom__${i}`))c++;});
     return c;
   })();
 
-  const effectiveTotal = Math.min(totalQCount, enabledCount);
+  const effectiveTotal=Math.min(totalQCount,enabledCount);
 
-  const addTeam = () => {
-    if(!tName.trim()||!tLeader.trim()||teams.length>=4) return;
+  const addTeam=()=>{
+    if(!tName.trim()||!tLeader.trim()||teams.length>=4)return;
     setTeams(p=>[...p,{id:Date.now(),name:tName.trim(),leader:tLeader.trim(),members:tMembers.filter(m=>m.trim()),score:0,color:TEAM_COLORS[p.length]}]);
-    setTName(''); setTLeader(''); setTMembers(Array(7).fill(''));
+    setTName('');setTLeader('');setTMembers(Array(7).fill(''));
   };
 
-  const buildPool = () => {
+  const buildPool=()=>{
     let pool=[];
     selCats.forEach(cat=>(QB[cat]||[]).forEach((q,i)=>{if(!disabledQs.has(`${cat}__${i}`))pool.push({...q,category:cat});}));
     customQs.forEach((q,i)=>{if(!disabledQs.has(`custom__${i}`))pool.push({...q});});
     return pool.sort(()=>Math.random()-.5).slice(0,Math.min(totalQCount,pool.length));
   };
 
-  const launchGame = async () => {
-    const code = genCode(6);
-    const pool = buildPool();
-    const teamsObj = {};
-    teams.forEach((t,i)=>{
-      const tc = genCode(4);
-      teamsObj[tc] = {name:t.name,leader:t.leader,members:t.members,score:0,color:t.color,code:tc};
+  const launchGame=async()=>{
+    const code=genCode(6);
+    const pool=buildPool();
+    const teamsObj={};
+    teams.forEach((t)=>{
+      const tc=genCode(4);
+      teamsObj[tc]={name:t.name,leader:t.leader,members:t.members||[],score:0,color:t.color,code:tc};
     });
-
-    const gameData = {
-      status:'lobby',
-      teams: teamsObj,
-      questions: pool,
-      currentQ: {index:0,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:''},
-      bonusRound: null,
-      players: {},
-      bonusFreq,
-      roundsPlayed: 0,
-      bonuses: bonuses.slice(0,bonuses.length),
-      createdAt: Date.now()
+    const gameData={
+      status:'lobby',teams:teamsObj,questions:pool,
+      currentQ:{index:0,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:'',teamAnswers:{},teamSelections:{}},
+      bonusRound:null,players:{},bonusFreq,roundsPlayed:0,
+      bonuses:bonuses.slice(0,bonuses.length),createdAt:Date.now()
     };
-
-    try {
+    try{
       await db.ref(`games/${code}`).set(gameData);
       setRoomCode(code);
-      // update teams with codes
-      const teamsWithCodes = Object.entries(teamsObj).map(([tc,t])=>({...t,id:tc}));
+      const teamsWithCodes=Object.entries(teamsObj).map(([tc,t])=>({...t,id:tc}));
       setTeams(teamsWithCodes);
       setScreen('lobby');
-      // start listening
-      startListener(code);
-    } catch(e) {
-      alert('Error creating game: ' + e.message);
-    }
+      const ref=db.ref(`games/${code}`);
+      ref.on('value',snap=>{if(snap.exists())setGameState(snap.val());});
+      listenerRef.current=ref;
+    }catch(e){alert('Error creating game: '+e.message);}
   };
 
-  const startListener = (code) => {
-    if (listenerRef.current) listenerRef.current.off();
-    const ref = db.ref(`games/${code}`);
-    ref.on('value', snap => {
-      if (snap.exists()) setGameState(snap.val());
-    });
-    listenerRef.current = ref;
-  };
+  useEffect(()=>{return()=>{if(listenerRef.current)listenerRef.current.off();};},[]);
 
-  useEffect(()=>{
-    return ()=>{ if(listenerRef.current) listenerRef.current.off(); };
-  },[]);
+  const startPlaying=async()=>{ await db.ref(`games/${roomCode}/status`).set('playing'); };
+  const revealAnswer=async()=>{ await db.ref(`games/${roomCode}/currentQ/phase`).set('reveal'); };
 
-  const startPlaying = async () => {
-    await db.ref(`games/${roomCode}/status`).set('playing');
-  };
-
-  const revealAnswer = async () => {
-    await db.ref(`games/${roomCode}/currentQ/phase`).set('reveal');
-  };
-
-  const awardAndNext = async (teamCode, pts) => {
-    const g = gameState;
-    if (!g) return;
-    const teamsArr = toTeamsArr(g.teams);
-    const team = teamsArr.find(t=>t.code===teamCode);
-    if (team) {
-      await db.ref(`games/${roomCode}/teams/${teamCode}/score`).transaction(s=>(s||0)+pts);
-    }
+  const awardAndNext=async(teamCode,pts)=>{
+    if(pts>0)await db.ref(`games/${roomCode}/teams/${teamCode}/score`).transaction(s=>(s||0)+pts);
     await goNext();
   };
 
-  const goNext = async () => {
-    const g = gameState;
-    if (!g) return;
-    const qs = toArr(g.questions);
-    const nr = (g.roundsPlayed||0) + 1;
-    const nx = g.currentQ.index + 1;
-
-    if (nx >= qs.length) {
-      await db.ref(`games/${roomCode}/status`).set('results');
-      return;
-    }
-
-    if (nr % g.bonusFreq === 0 && bonuses.length > 0) {
-      const b = bonuses[Math.floor(Math.random()*bonuses.length)];
-      await db.ref(`games/${roomCode}`).update({
-        bonusRound: {emoji:b.emoji,title:b.title,description:b.description},
-        status: 'bonus',
-        roundsPlayed: nr
-      });
-      return;
-    }
-
-    await db.ref(`games/${roomCode}`).update({
-      currentQ: {index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:'',teamAnswers:{}},
-      roundsPlayed: nr,
-      status: 'playing'
-    });
-  };
-
-  const afterBonus = async () => {
-    const g = gameState;
-    if (!g) return;
-    const qs = toArr(g.questions);
-    const nx = g.currentQ.index + 1;
-    if (nx >= qs.length) {
-      await db.ref(`games/${roomCode}/status`).set('results');
+  const goNext=async()=>{
+    const g=gameState;if(!g)return;
+    const qs=toArr(g.questions);
+    const nr=(g.roundsPlayed||0)+1;
+    const nx=g.currentQ.index+1;
+    if(nx>=qs.length){await db.ref(`games/${roomCode}/status`).set('results');return;}
+    if(nr%g.bonusFreq===0&&bonuses.length>0){
+      const b=bonuses[Math.floor(Math.random()*bonuses.length)];
+      await db.ref(`games/${roomCode}`).update({bonusRound:{emoji:b.emoji,title:b.title,description:b.description},status:'bonus',roundsPlayed:nr});
       return;
     }
     await db.ref(`games/${roomCode}`).update({
-      bonusRound: null,
-      status: 'playing',
-      currentQ: {index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:'',teamAnswers:{}}
+      currentQ:{index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:'',teamAnswers:{},teamSelections:{}},
+      roundsPlayed:nr,status:'playing'
     });
   };
 
-  const awardBonusAndNext = async (teamCode) => {
+  const afterBonus=async()=>{
+    const g=gameState;if(!g)return;
+    const qs=toArr(g.questions);
+    const nx=g.currentQ.index+1;
+    if(nx>=qs.length){await db.ref(`games/${roomCode}/status`).set('results');return;}
+    await db.ref(`games/${roomCode}`).update({
+      bonusRound:null,status:'playing',
+      currentQ:{index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:'',teamAnswers:{},teamSelections:{}}
+    });
+  };
+
+  const awardBonusAndNext=async(teamCode)=>{
     await db.ref(`games/${roomCode}/teams/${teamCode}/score`).transaction(s=>(s||0)+25);
     await afterBonus();
   };
 
-  const addCustomQ = () => {
-    if(!cqText.trim()||!cqAns.trim()) return;
+  const addCustomQ=()=>{
+    if(!cqText.trim()||!cqAns.trim())return;
     setCustomQs(p=>[...p,{type:cqType,question:cqText.trim(),options:cqType==='multiple'?cqOpts.filter(o=>o.trim()):[],answer:cqAns.trim(),points:cqPts,category:'Custom'}]);
-    setCqText(''); setCqOpts(['','','','']); setCqAns(''); setShowCqForm(false);
+    setCqText('');setCqOpts(['','','','']);setCqAns('');setShowCqForm(false);
   };
 
-  const addBonus = () => {
-    if(!cbTitle.trim()||!cbDesc.trim()) return;
+  const addBonus=()=>{
+    if(!cbTitle.trim()||!cbDesc.trim())return;
     setBonuses(p=>[...p,{id:Date.now(),emoji:cbEmoji,title:cbTitle.trim(),description:cbDesc.trim()}]);
-    setCbTitle(''); setCbDesc(''); setCbEmoji('🎯'); setShowBonusForm(false);
+    setCbTitle('');setCbDesc('');setCbEmoji('🎯');setShowBonusForm(false);
   };
 
-  const exitGame = async () => {
-    if (roomCode) await db.ref(`games/${roomCode}/status`).set('ended');
-    if (listenerRef.current) listenerRef.current.off();
+  const exitGame=async()=>{
+    if(roomCode)await db.ref(`games/${roomCode}/status`).set('ended');
+    if(listenerRef.current)listenerRef.current.off();
     onExit();
   };
 
-  // Route by game status when connected
-  const status = gameState?.status;
-  if (screen==='lobby' && status==='playing') setScreen('playing');
-  if (screen==='playing' && status==='bonus') setScreen('bonus');
-  if (screen==='bonus' && status==='playing') setScreen('playing');
-  if ((screen==='playing'||screen==='bonus') && status==='results') setScreen('results');
+  const g=gameState;
+  const status=g?.status;
+  if(screen==='lobby'&&status==='playing')setScreen('playing');
+  if(screen==='playing'&&status==='bonus')setScreen('bonus');
+  if(screen==='bonus'&&status==='playing')setScreen('playing');
+  if((screen==='playing'||screen==='bonus')&&status==='results')setScreen('results');
 
-  const g = gameState;
-  const teamsArr = g ? toTeamsArr(g.teams) : teams;
-  const sortedTeams = [...teamsArr].sort((a,b)=>b.score-a.score);
-  const qs = g ? toArr(g.questions) : [];
-  const q = g && qs.length > 0 ? qs[g.currentQ?.index||0] : null;
-  const players = g ? Object.values(g.players||{}) : [];
+  const teamsArr=g?toTeamsArr(g.teams):teams;
+  const sortedTeams=[...teamsArr].sort((a,b)=>b.score-a.score);
+  const qs=g?toArr(g.questions):[];
+  const q=g&&qs.length>0?qs[g.currentQ?.index||0]:null;
+  const players=g?Object.values(g.players||[]):[];
 
-  // ── HOST: TEAMS SCREEN ─────────────────────────────────────────────────
-  if (screen==='teams') return (
+  // TEAMS
+  if(screen==='teams')return(
     <div className="app"><div className="wrap">
       <div className="row" style={{marginBottom:22}}>
         <button className="btn btn-ghost btn-sm" onClick={onExit}>← Exit</button>
-        <div><div className="screen-title">Team Setup</div><div className="screen-sub">Add 2–4 teams before setting up the game</div></div>
+        <div><div className="screen-title">Team Setup</div><div className="screen-sub">Add 2–4 teams before configuring the game</div></div>
       </div>
       {teams.map((t,i)=>(
         <div key={t.id} className="team-row fade" style={{borderColor:t.color,background:`${t.color}10`}}>
@@ -492,9 +463,7 @@ function HostApp({onExit}) {
             <div><span className="label">Team Leader *</span><input className="inp" placeholder="Leader's name" value={tLeader} onChange={e=>setTLeader(e.target.value)}/></div>
           </div>
           <span className="label">Members (optional)</span>
-          <div className="grid2">
-            {tMembers.map((m,i)=><input key={i} className="inp" placeholder={`Member ${i+1}`} value={m} style={{marginBottom:8}} onChange={e=>{const u=[...tMembers];u[i]=e.target.value;setTMembers(u)}}/>)}
-          </div>
+          <div className="grid2">{tMembers.map((m,i)=><input key={i} className="inp" placeholder={`Member ${i+1}`} value={m} style={{marginBottom:8}} onChange={e=>{const u=[...tMembers];u[i]=e.target.value;setTMembers(u)}}/>)}</div>
           <button className="btn btn-yellow" style={{marginTop:14,width:'100%'}} onClick={addTeam} disabled={!tName.trim()||!tLeader.trim()}>+ Add Team</button>
         </div>
       )}
@@ -505,8 +474,8 @@ function HostApp({onExit}) {
     </div></div>
   );
 
-  // ── HOST: CONFIG SCREEN ────────────────────────────────────────────────
-  if (screen==='config') return (
+  // CONFIG
+  if(screen==='config')return(
     <div className="app"><div className="wrap">
       <div className="row" style={{marginBottom:18}}>
         <button className="btn btn-ghost btn-sm" onClick={()=>setScreen('teams')}>← Back</button>
@@ -518,147 +487,142 @@ function HostApp({onExit}) {
         ))}
       </div>
 
-      {configTab==='categories'&&(
-        <div className="fade">
-          <div className="card">
-            <span className="label" style={{marginBottom:12,display:'block'}}>Select Categories</span>
-            <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-              {Object.keys(QB).map(cat=>(
-                <button key={cat} className={`chip ${selCats.includes(cat)?'on':''}`}
-                  onClick={()=>{if(selCats.includes(cat)){if(selCats.length>1)setSelCats(p=>p.filter(c=>c!==cat))}else setSelCats(p=>[...p,cat])}}>
-                  {cat}
-                </button>
-              ))}
-            </div>
-            <p style={{marginTop:12,fontSize:'.8rem',color:'rgba(255,255,255,.3)'}}>{selCats.length} categor{selCats.length===1?'y':'ies'} selected · {enabledCount} questions available</p>
-          </div>
-          <div className="card">
-            <span className="label" style={{marginBottom:6,display:'block'}}>Number of Questions</span>
-            <div className="row" style={{marginBottom:8}}>
-              <input type="range" min={1} max={Math.max(enabledCount,1)} value={effectiveTotal} step={1} style={{flex:1}} onChange={e=>setTotalQCount(+e.target.value)}/>
-              <span style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.8rem',color:'#FFE600',minWidth:44,textAlign:'right'}}>{effectiveTotal}</span>
-            </div>
-            <p style={{fontSize:'.79rem',color:'rgba(255,255,255,.3)'}}>Drag to set how many questions appear (max {enabledCount} available)</p>
-          </div>
-        </div>
-      )}
-
-      {configTab==='questions'&&(
-        <div className="fade">
-          <p style={{fontSize:'.84rem',color:'rgba(255,255,255,.38)',marginBottom:14,lineHeight:1.6}}>Click a category to expand it. Toggle questions on or off.</p>
-          {selCats.map(cat=>{
-            const qs2=QB[cat]||[];
-            const ac=qs2.filter((_,i)=>!disabledQs.has(`${cat}__${i}`)).length;
-            return(
-              <div className="card" key={cat} style={{marginBottom:12}}>
-                <button className="cat-header" onClick={()=>setExpandedCat(expandedCat===cat?null:cat)}>
-                  <div><span style={{fontWeight:900,color:'#fff',fontSize:'1rem'}}>{cat}</span><span style={{marginLeft:10,fontSize:'.78rem',color:'rgba(255,255,255,.35)',fontWeight:700}}>{ac}/{qs2.length} active</span></div>
-                  <span style={{color:'rgba(255,255,255,.3)',fontSize:'.9rem'}}>{expandedCat===cat?'▲':'▼'}</span>
-                </button>
-                {expandedCat===cat&&(
-                  <div style={{marginTop:14}}>
-                    {qs2.map((q2,i)=>{
-                      const key=`${cat}__${i}`;const active=!disabledQs.has(key);
-                      return(
-                        <div key={i} className={`q-item ${active?'':'off'}`}>
-                          <button className={`toggle ${active?'tgl-on':'tgl-off'}`} onClick={()=>toggleQ(key)}/>
-                          <div style={{flex:1}}>
-                            <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:5}}>
-                              <span className="tag" style={{background:`${TC[q2.type]}18`,color:TC[q2.type],border:`1px solid ${TC[q2.type]}30`,fontSize:'.7rem'}}>{q2.type}</span>
-                              <span className="tag" style={{background:'rgba(255,230,0,.1)',color:'#FFE600',border:'1px solid rgba(255,230,0,.18)',fontSize:'.7rem'}}>{q2.points} pts</span>
-                            </div>
-                            <p style={{fontSize:'.84rem',color:'rgba(255,255,255,.75)',fontWeight:700,lineHeight:1.4,marginBottom:3}}>{q2.question}</p>
-                            <p style={{fontSize:'.73rem',color:'rgba(255,255,255,.28)'}}>Answer: {q2.answer}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          <div className="card">
-            <div className="row" style={{justifyContent:'space-between',marginBottom:10}}>
-              <span className="label" style={{marginBottom:0}}>Custom Questions ({customQs.length})</span>
-              <button className="btn btn-ghost btn-sm" onClick={()=>setShowCqForm(!showCqForm)}>{showCqForm?'Cancel':'+ Add'}</button>
-            </div>
-            {customQs.map((cq,i)=>(
-              <div key={i} className="custom-q-row">
-                <div style={{flex:1,minWidth:0}}>
-                  <span className="tag" style={{background:`${TC[cq.type]}18`,color:TC[cq.type],border:`1px solid ${TC[cq.type]}28`,marginRight:7,fontSize:'.7rem'}}>{cq.type}</span>
-                  <span style={{fontSize:'.84rem',color:'rgba(255,255,255,.7)',fontWeight:700}}>{cq.question.slice(0,60)}{cq.question.length>60&&'…'}</span>
-                </div>
-                <button className="btn btn-danger btn-sm" onClick={()=>setCustomQs(p=>p.filter((_,j)=>j!==i))}>✕</button>
-              </div>
+      {configTab==='categories'&&<div className="fade">
+        <div className="card">
+          <span className="label" style={{marginBottom:12,display:'block'}}>Select Categories</span>
+          <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+            {Object.keys(QB).map(cat=>(
+              <button key={cat} className={`chip ${selCats.includes(cat)?'on':''}`}
+                onClick={()=>{if(selCats.includes(cat)){if(selCats.length>1)setSelCats(p=>p.filter(c=>c!==cat))}else setSelCats(p=>[...p,cat])}}>
+                {cat}
+              </button>
             ))}
-            {showCqForm&&(
-              <div style={{background:'rgba(255,255,255,.04)',borderRadius:14,padding:16,marginTop:10}}>
-                <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
-                  {['multiple','text','buzzer'].map(t=><button key={t} className={`chip ${cqType===t?'on':''}`} onClick={()=>setCqType(t)}>{TL[t]}</button>)}
-                </div>
-                <span className="label">Question *</span>
-                <textarea className="inp" style={{resize:'vertical',minHeight:68,marginBottom:12}} placeholder="Enter your question…" value={cqText} onChange={e=>setCqText(e.target.value)}/>
-                {cqType==='multiple'&&<><span className="label">Answer Options</span><div className="grid2" style={{marginBottom:12}}>{cqOpts.map((o,i)=><input key={i} className="inp" placeholder={`Option ${LETTERS[i]}`} value={o} style={{marginBottom:6}} onChange={e=>{const u=[...cqOpts];u[i]=e.target.value;setCqOpts(u)}}/>)}</div></>}
-                <div className="grid2" style={{marginBottom:12}}>
-                  <div><span className="label">Correct Answer *</span><input className="inp" placeholder="Answer…" value={cqAns} onChange={e=>setCqAns(e.target.value)}/></div>
-                  <div><span className="label">Points</span><select className="inp" value={cqPts} onChange={e=>setCqPts(+e.target.value)}>{[5,10,15,20,25,30].map(p=><option key={p} value={p}>{p} pts</option>)}</select></div>
-                </div>
-                <button className="btn btn-yellow" style={{width:'100%'}} onClick={addCustomQ} disabled={!cqText.trim()||!cqAns.trim()}>Save Question</button>
-              </div>
-            )}
           </div>
+          <p style={{marginTop:12,fontSize:'.8rem',color:'rgba(255,255,255,.3)'}}>{selCats.length} categor{selCats.length===1?'y':'ies'} selected · {enabledCount} questions available</p>
         </div>
-      )}
+        <div className="card">
+          <span className="label" style={{marginBottom:6,display:'block'}}>Number of Questions</span>
+          <div className="row" style={{marginBottom:8}}>
+            <input type="range" min={1} max={Math.max(enabledCount,1)} value={effectiveTotal} step={1} style={{flex:1}} onChange={e=>setTotalQCount(+e.target.value)}/>
+            <span style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.8rem',color:'#FFE600',minWidth:44,textAlign:'right'}}>{effectiveTotal}</span>
+          </div>
+          <p style={{fontSize:'.79rem',color:'rgba(255,255,255,.3)'}}>Drag to set how many questions appear (max {enabledCount} available)</p>
+        </div>
+      </div>}
 
-      {configTab==='bonuses'&&(
-        <div className="fade">
-          <p style={{fontSize:'.84rem',color:'rgba(255,255,255,.38)',marginBottom:14,lineHeight:1.6}}>Remove bonus rounds or add your own custom activities.</p>
-          {bonuses.map((b,i)=>(
-            <div key={b.id} className="bonus-item">
-              <span style={{fontSize:'1.6rem',flexShrink:0}}>{b.emoji}</span>
-              <div style={{flex:1}}><div style={{fontWeight:900,fontSize:'.92rem',marginBottom:3}}>{b.title}</div><div style={{fontSize:'.77rem',color:'rgba(255,255,255,.36)',lineHeight:1.4}}>{b.description.slice(0,80)}{b.description.length>80&&'…'}</div></div>
-              <button className="btn btn-danger btn-sm" onClick={()=>setBonuses(p=>p.filter((_,j)=>j!==i))}>Remove</button>
+      {configTab==='questions'&&<div className="fade">
+        <p style={{fontSize:'.84rem',color:'rgba(255,255,255,.38)',marginBottom:14,lineHeight:1.6}}>Click a category to expand it. Toggle questions on or off.</p>
+        {selCats.map(cat=>{
+          const qs2=QB[cat]||[];
+          const ac=qs2.filter((_,i)=>!disabledQs.has(`${cat}__${i}`)).length;
+          return(
+            <div className="card" key={cat} style={{marginBottom:12}}>
+              <button className="cat-header" onClick={()=>setExpandedCat(expandedCat===cat?null:cat)}>
+                <div><span style={{fontWeight:900,color:'#fff',fontSize:'1rem'}}>{cat}</span><span style={{marginLeft:10,fontSize:'.78rem',color:'rgba(255,255,255,.35)',fontWeight:700}}>{ac}/{qs2.length} active</span></div>
+                <span style={{color:'rgba(255,255,255,.3)',fontSize:'.9rem'}}>{expandedCat===cat?'▲':'▼'}</span>
+              </button>
+              {expandedCat===cat&&<div style={{marginTop:14}}>
+                {qs2.map((q2,i)=>{
+                  const key=`${cat}__${i}`;const active=!disabledQs.has(key);
+                  return(
+                    <div key={i} className={`q-item ${active?'':'off'}`}>
+                      <button className={`toggle ${active?'tgl-on':'tgl-off'}`} onClick={()=>toggleQ(key)}/>
+                      <div style={{flex:1}}>
+                        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:5}}>
+                          <span className="tag" style={{background:`${TC[q2.type]}18`,color:TC[q2.type],border:`1px solid ${TC[q2.type]}30`,fontSize:'.7rem'}}>{q2.type}</span>
+                          <span className="tag" style={{background:'rgba(255,230,0,.1)',color:'#FFE600',border:'1px solid rgba(255,230,0,.18)',fontSize:'.7rem'}}>{q2.points} pts</span>
+                        </div>
+                        <p style={{fontSize:'.84rem',color:'rgba(255,255,255,.75)',fontWeight:700,lineHeight:1.4,marginBottom:3}}>{q2.question}</p>
+                        <p style={{fontSize:'.73rem',color:'rgba(255,255,255,.28)'}}>Answer: {q2.answer}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>}
+            </div>
+          );
+        })}
+        <div className="card">
+          <div className="row" style={{justifyContent:'space-between',marginBottom:10}}>
+            <span className="label" style={{marginBottom:0}}>Custom Questions ({customQs.length})</span>
+            <button className="btn btn-ghost btn-sm" onClick={()=>setShowCqForm(!showCqForm)}>{showCqForm?'Cancel':'+ Add'}</button>
+          </div>
+          {customQs.map((cq,i)=>(
+            <div key={i} className="custom-q-row">
+              <div style={{flex:1,minWidth:0}}>
+                <span className="tag" style={{background:`${TC[cq.type]}18`,color:TC[cq.type],border:`1px solid ${TC[cq.type]}28`,marginRight:7,fontSize:'.7rem'}}>{cq.type}</span>
+                <span style={{fontSize:'.84rem',color:'rgba(255,255,255,.7)',fontWeight:700}}>{cq.question.slice(0,60)}{cq.question.length>60&&'…'}</span>
+              </div>
+              <button className="btn btn-danger btn-sm" onClick={()=>setCustomQs(p=>p.filter((_,j)=>j!==i))}>✕</button>
             </div>
           ))}
-          {bonuses.length===0&&<div style={{textAlign:'center',color:'rgba(255,255,255,.22)',padding:'18px 0',fontSize:'.85rem'}}>No bonus rounds</div>}
-          <div className="card" style={{marginTop:8}}>
-            <div className="row" style={{justifyContent:'space-between',marginBottom:10}}>
-              <span className="label" style={{marginBottom:0}}>Add Custom Bonus Round</span>
-              <button className="btn btn-ghost btn-sm" onClick={()=>setShowBonusForm(!showBonusForm)}>{showBonusForm?'Cancel':'+ Add'}</button>
+          {showCqForm&&<div style={{background:'rgba(255,255,255,.04)',borderRadius:14,padding:16,marginTop:10}}>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+              {['multiple','text','buzzer'].map(t=><button key={t} className={`chip ${cqType===t?'on':''}`} onClick={()=>setCqType(t)}>{TL[t]}</button>)}
             </div>
-            {showBonusForm&&(
-              <div>
-                <div className="grid2" style={{marginBottom:12}}>
-                  <div><span className="label">Emoji</span><input className="inp" placeholder="🎯" value={cbEmoji} maxLength={2} onChange={e=>setCbEmoji(e.target.value)}/></div>
-                  <div><span className="label">Title *</span><input className="inp" placeholder="e.g. Sing-Off!" value={cbTitle} onChange={e=>setCbTitle(e.target.value)}/></div>
-                </div>
-                <span className="label">Description *</span>
-                <textarea className="inp" style={{resize:'vertical',minHeight:72,marginBottom:12}} placeholder="Describe the activity…" value={cbDesc} onChange={e=>setCbDesc(e.target.value)}/>
-                <button className="btn btn-yellow" style={{width:'100%'}} onClick={addBonus} disabled={!cbTitle.trim()||!cbDesc.trim()}>Save Bonus Round</button>
-              </div>
-            )}
-          </div>
+            <span className="label">Question *</span>
+            <textarea className="inp" style={{resize:'vertical',minHeight:68,marginBottom:12}} placeholder="Enter your question…" value={cqText} onChange={e=>setCqText(e.target.value)}/>
+            {cqType==='multiple'&&<><span className="label">Answer Options</span><div className="grid2" style={{marginBottom:12}}>{cqOpts.map((o,i)=><input key={i} className="inp" placeholder={`Option ${LETTERS[i]}`} value={o} style={{marginBottom:6}} onChange={e=>{const u=[...cqOpts];u[i]=e.target.value;setCqOpts(u)}}/>)}</div></>}
+            <div className="grid2" style={{marginBottom:12}}>
+              <div><span className="label">Correct Answer *</span><input className="inp" placeholder="Answer…" value={cqAns} onChange={e=>setCqAns(e.target.value)}/></div>
+              <div><span className="label">Points</span><select className="inp" value={cqPts} onChange={e=>setCqPts(+e.target.value)}>{[5,10,15,20,25,30].map(p=><option key={p} value={p}>{p} pts</option>)}</select></div>
+            </div>
+            <button className="btn btn-yellow" style={{width:'100%'}} onClick={addCustomQ} disabled={!cqText.trim()||!cqAns.trim()}>Save Question</button>
+          </div>}
         </div>
-      )}
+      </div>}
 
-      {configTab==='settings'&&(
-        <div className="fade">
-          <div className="card">
-            <span className="label" style={{marginBottom:8,display:'block'}}>Bonus Round Frequency</span>
-            <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-              {[2,3,4,5,6].map(n=><button key={n} className={`chip ${bonusFreq===n?'on':''}`} onClick={()=>setBonusFreq(n)}>Every {n} questions</button>)}
-            </div>
+      {configTab==='bonuses'&&<div className="fade">
+        <p style={{fontSize:'.84rem',color:'rgba(255,255,255,.38)',marginBottom:14,lineHeight:1.6}}>Remove bonus rounds you don't want, or add your own.</p>
+        {bonuses.map((b,i)=>(
+          <div key={b.id} className="bonus-item">
+            <span style={{fontSize:'1.6rem',flexShrink:0}}>{b.emoji}</span>
+            <div style={{flex:1}}><div style={{fontWeight:900,fontSize:'.92rem',marginBottom:3}}>{b.title}</div><div style={{fontSize:'.77rem',color:'rgba(255,255,255,.36)',lineHeight:1.4}}>{b.description.slice(0,80)}{b.description.length>80&&'…'}</div></div>
+            <button className="btn btn-danger btn-sm" onClick={()=>setBonuses(p=>p.filter((_,j)=>j!==i))}>Remove</button>
           </div>
-          <div className="card">
-            <span className="label" style={{marginBottom:10,display:'block'}}>Teams ({teams.length})</span>
-            <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
-              {teams.map(t=><div key={t.id} className="tag" style={{background:`${t.color}18`,color:t.color,border:`1px solid ${t.color}30`,padding:'6px 14px',fontSize:'.85rem'}}>{t.name} · {t.leader}</div>)}
+        ))}
+        {bonuses.length===0&&<div style={{textAlign:'center',color:'rgba(255,255,255,.22)',padding:'18px 0',fontSize:'.85rem'}}>No bonus rounds</div>}
+        <div className="card" style={{marginTop:8}}>
+          <div className="row" style={{justifyContent:'space-between',marginBottom:10}}>
+            <span className="label" style={{marginBottom:0}}>Add Custom Bonus Round</span>
+            <button className="btn btn-ghost btn-sm" onClick={()=>setShowBonusForm(!showBonusForm)}>{showBonusForm?'Cancel':'+ Add'}</button>
+          </div>
+          {showBonusForm&&<div>
+            <div className="grid2" style={{marginBottom:12}}>
+              <div><span className="label">Emoji</span><input className="inp" placeholder="🎯" value={cbEmoji} maxLength={2} onChange={e=>setCbEmoji(e.target.value)}/></div>
+              <div><span className="label">Title *</span><input className="inp" placeholder="e.g. Sing-Off!" value={cbTitle} onChange={e=>setCbTitle(e.target.value)}/></div>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={()=>setScreen('teams')}>Edit Teams</button>
+            <span className="label">Description *</span>
+            <textarea className="inp" style={{resize:'vertical',minHeight:72,marginBottom:12}} placeholder="Describe the activity…" value={cbDesc} onChange={e=>setCbDesc(e.target.value)}/>
+            <button className="btn btn-yellow" style={{width:'100%'}} onClick={addBonus} disabled={!cbTitle.trim()||!cbDesc.trim()}>Save Bonus Round</button>
+          </div>}
+        </div>
+      </div>}
+
+      {configTab==='settings'&&<div className="fade">
+        <div className="card">
+          <span className="label" style={{marginBottom:8,display:'block'}}>Bonus Round Frequency</span>
+          <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+            {[2,3,4,5,6].map(n=><button key={n} className={`chip ${bonusFreq===n?'on':''}`} onClick={()=>setBonusFreq(n)}>Every {n} questions</button>)}
           </div>
         </div>
-      )}
+        <div className="card">
+          <span className="label" style={{marginBottom:10,display:'block'}}>Teams ({teams.length})</span>
+          <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
+            {teams.map(t=><div key={t.id} className="tag" style={{background:`${t.color}18`,color:t.color,border:`1px solid ${t.color}30`,padding:'6px 14px',fontSize:'.85rem'}}>{t.name} · {t.leader}</div>)}
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setScreen('teams')}>Edit Teams</button>
+        </div>
+        <div className="card">
+          <span className="label" style={{marginBottom:8,display:'block'}}>Game Summary</span>
+          {[['Categories',`${selCats.length} selected`],['Questions',`${effectiveTotal} will be played (${enabledCount} available)`],['Bonus Rounds',`${bonuses.length} active, every ${bonusFreq} questions`],['Custom Questions',`${customQs.length} added`]].map(([k,v])=>(
+            <div key={k} style={{display:'flex',justifyContent:'space-between',fontSize:'.87rem',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
+              <span style={{color:'rgba(255,255,255,.38)',fontWeight:700}}>{k}</span>
+              <span style={{color:'rgba(255,255,255,.75)',fontWeight:800}}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>}
 
       <div style={{height:16}}/>
       <button className="btn btn-yellow btn-full" onClick={launchGame} disabled={enabledCount===0||teams.length<2}>
@@ -667,22 +631,20 @@ function HostApp({onExit}) {
     </div></div>
   );
 
-  // ── HOST: LOBBY ────────────────────────────────────────────────────────
-  if (screen==='lobby') return (
+  // LOBBY
+  if(screen==='lobby')return(
     <div className="app"><div className="wrap">
       <div style={{marginBottom:22}}>
         <div className="screen-title">Game Lobby</div>
         <div className="screen-sub">Share these codes with your players</div>
       </div>
-
       <div className="code-box" style={{marginBottom:14}}>
-        <div style={{fontSize:'.78rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,230,0,.6)',marginBottom:6}}>Room Code — Share this with everyone</div>
+        <div style={{fontSize:'.78rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,230,0,.6)',marginBottom:6}}>Room Code — Share with everyone</div>
         <div className="code-big">{roomCode}</div>
-        <div style={{fontSize:'.8rem',color:'rgba(255,255,255,.35)',marginTop:6}}>Players go to this website and enter this code</div>
+        <div style={{fontSize:'.8rem',color:'rgba(255,255,255,.35)',marginTop:6}}>Players open this website and enter this code</div>
       </div>
-
       <div className="card" style={{marginBottom:14}}>
-        <span className="label" style={{marginBottom:12,display:'block'}}>Team Codes — Each team leader shares with their team</span>
+        <span className="label" style={{marginBottom:12,display:'block'}}>Team Codes — Each team shares their code amongst themselves</span>
         {teamsArr.map(t=>(
           <div key={t.code} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',borderRadius:13,background:`${t.color}10`,border:`1.5px solid ${t.color}30`,marginBottom:8}}>
             <div style={{width:10,height:10,borderRadius:'50%',background:t.color,flexShrink:0}}/>
@@ -694,68 +656,60 @@ function HostApp({onExit}) {
           </div>
         ))}
       </div>
-
       <div className="card" style={{marginBottom:18}}>
         <span className="label" style={{marginBottom:10,display:'block'}}>Players Joined ({players.length})</span>
         {players.length===0
-          ? <p style={{color:'rgba(255,255,255,.25)',fontSize:'.85rem'}}>Waiting for players to join<span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/></p>
-          : players.map((p,i)=>{
-              const team = g?.teams?.[p.teamCode];
-              return(
-                <div key={i} className="player-joined">
-                  <div style={{width:8,height:8,borderRadius:'50%',background:team?.color||'#888',flexShrink:0}}/>
-                  <span style={{fontWeight:700,flex:1}}>{p.name}</span>
-                  <span style={{fontSize:'.8rem',color:'rgba(255,255,255,.38)',fontWeight:700}}>{team?.name||p.teamCode}</span>
-                </div>
-              );
-            })
+          ?<p style={{color:'rgba(255,255,255,.25)',fontSize:'.85rem'}}>Waiting for players<span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/></p>
+          :players.map((p,i)=>{
+            const team=g?.teams?.[p.teamCode];
+            return(
+              <div key={i} className="player-joined">
+                <div style={{width:8,height:8,borderRadius:'50%',background:team?.color||'#888',flexShrink:0}}/>
+                <span style={{fontWeight:700,flex:1}}>{p.name}</span>
+                <span style={{fontSize:'.8rem',color:'rgba(255,255,255,.38)',fontWeight:700}}>{team?.name||p.teamCode}</span>
+              </div>
+            );
+          })
         }
       </div>
-
-      <button className="btn btn-yellow btn-full" onClick={startPlaying} disabled={players.length===0}>
-        {players.length===0?'Waiting for players…':'Start Game!'}
-      </button>
-      <button className="btn btn-ghost btn-full" style={{marginTop:10}} onClick={startPlaying}>
-        Start Without Players (Host-Only Mode)
-      </button>
+      <button className="btn btn-yellow btn-full" onClick={startPlaying} disabled={players.length===0}>{players.length===0?'Waiting for players…':'Start Game!'}</button>
+      <button className="btn btn-ghost btn-full" style={{marginTop:10}} onClick={startPlaying}>Start Without Players (Host-Only Mode)</button>
     </div></div>
   );
 
-  // ── HOST: PLAYING ──────────────────────────────────────────────────────
-  if (screen==='playing') {
-    if (!g || !q) return <div className="app center"><p>Loading…</p></div>;
-
-    if (paused) return (
-      <div className="app">
-        <div className="pause-wrap">
-          <div className="pause-card fade">
-            <div style={{fontSize:'2.5rem',marginBottom:8}}>⏸</div>
-            <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.8rem',color:'#FFE600',marginBottom:4}}>Game Paused</h2>
-            <p style={{fontSize:'.82rem',color:'rgba(255,255,255,.35)',marginBottom:22}}>Q {(g.currentQ?.index||0)+1} of {qs.length}</p>
-            <div className="divider" style={{marginBottom:18}}/>
-            <span className="label" style={{marginBottom:10,display:'block',textAlign:'left'}}>Standings</span>
-            {sortedTeams.map((t,i)=>(
-              <div key={t.code} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:11,background:`${t.color}12`,border:`1px solid ${t.color}25`,marginBottom:7}}>
-                <span style={{fontSize:'.78rem',color:'rgba(255,255,255,.32)',fontWeight:800,width:18}}>#{i+1}</span>
-                <span style={{flex:1,fontWeight:800}}>{t.name}</span>
-                <span style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.4rem',color:t.color}}>{t.score}</span>
-              </div>
-            ))}
-            <div className="divider" style={{margin:'20px 0'}}/>
-            <div style={{display:'flex',flexDirection:'column',gap:10}}>
-              <button className="btn btn-yellow btn-full" onClick={()=>setPaused(false)}>▶ Resume</button>
-              <button className="btn btn-danger btn-full" onClick={exitGame}>✕ End Game</button>
+  // PLAYING
+  if(screen==='playing'){
+    if(paused)return(
+      <div className="app"><div className="pause-wrap">
+        <div className="pause-card fade">
+          <div style={{fontSize:'2.5rem',marginBottom:8}}>⏸</div>
+          <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.8rem',color:'#FFE600',marginBottom:4}}>Game Paused</h2>
+          <p style={{fontSize:'.82rem',color:'rgba(255,255,255,.35)',marginBottom:22}}>Q {(g?.currentQ?.index||0)+1} of {qs.length}</p>
+          <div className="divider" style={{marginBottom:18}}/>
+          <span className="label" style={{marginBottom:10,display:'block',textAlign:'left'}}>Standings</span>
+          {sortedTeams.map((t,i)=>(
+            <div key={t.code} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:11,background:`${t.color}12`,border:`1px solid ${t.color}25`,marginBottom:7}}>
+              <span style={{fontSize:'.78rem',color:'rgba(255,255,255,.32)',fontWeight:800,width:18}}>#{i+1}</span>
+              <span style={{flex:1,fontWeight:800}}>{t.name}</span>
+              <span style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.4rem',color:t.color}}>{t.score||0}</span>
             </div>
+          ))}
+          <div className="divider" style={{margin:'20px 0'}}/>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            <button className="btn btn-yellow btn-full" onClick={()=>setPaused(false)}>▶ Resume</button>
+            <button className="btn btn-danger btn-full" onClick={exitGame}>✕ End Game</button>
           </div>
         </div>
-      </div>
+      </div></div>
     );
 
-    const prog = ((g.currentQ?.index||0)/Math.max(qs.length,1))*100;
-    const currentQ = g.currentQ || {};
-    const buzzedTeamData = currentQ.buzzedTeam ? g.teams?.[currentQ.buzzedTeam] : null;
+    if(!g||!q)return<div className="app center"><p>Loading…</p></div>;
+    const prog=((g.currentQ?.index||0)/Math.max(qs.length,1))*100;
+    const currentQ=g.currentQ||{};
+    const teamAnswers=currentQ.teamAnswers||{};
+    const teamSelections=currentQ.teamSelections||{};
 
-    return (
+    return(
       <div className="app"><div className="wrap">
         <div className="row" style={{justifyContent:'space-between',marginBottom:12}}>
           <div style={{display:'flex',gap:7,flexWrap:'wrap',flex:1}}>
@@ -773,7 +727,6 @@ function HostApp({onExit}) {
         <div className="prog-bar"><div className="prog-fill" style={{width:`${prog}%`}}/></div>
 
         <div className="card">
-          {/* Question header */}
           <div className="row" style={{justifyContent:'space-between',marginBottom:14}}>
             <span className="qtype-badge" style={{background:`${TC[q.type]}15`,color:TC[q.type],borderColor:`${TC[q.type]}35`}}>{TL[q.type]}</span>
             <div className="row" style={{gap:8}}>
@@ -783,154 +736,157 @@ function HostApp({onExit}) {
           </div>
           <div style={{fontSize:'clamp(1rem,3vw,1.25rem)',fontWeight:900,lineHeight:1.45,marginBottom:20}}>{q.question}</div>
 
-          {currentQ.phase==='question'&&(()=>{
-            const teamAnswers = currentQ.teamAnswers || {};
-            const answeredCodes = Object.keys(teamAnswers);
-
-            return (
-              <>
-                {/* MULTIPLE CHOICE — show options, host awards after reveal */}
-                {q.type==='multiple'&&q.options&&(
-                  <div style={{marginBottom:14}}>
-                    {q.options.map((opt,i)=>(
-                      <div key={i} className="opt" style={{cursor:'default'}}>
-                        <span className="letter">{LETTERS[i]}</span>{opt}
+          {currentQ.phase==='question'&&(<>
+            {/* MULTIPLE CHOICE — show options + live team selections */}
+            {q.type==='multiple'&&q.options&&(<>
+              <div style={{marginBottom:14}}>
+                {q.options.map((opt,i)=>{
+                  const teamsWhoSelected=teamsArr.filter(t=>teamSelections[t.code]===opt);
+                  return(
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:10,background:'rgba(255,255,255,.05)',border:'2px solid rgba(255,255,255,.1)',borderRadius:14,padding:'11px 16px',marginBottom:8}}>
+                      <span className="letter">{LETTERS[i]}</span>
+                      <span style={{flex:1,fontWeight:800}}>{opt}</span>
+                      <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                        {teamsWhoSelected.map(t=>(
+                          <span key={t.code} style={{fontSize:'.72rem',fontWeight:800,padding:'3px 9px',borderRadius:50,background:`${t.color}25`,color:t.color,border:`1px solid ${t.color}40`}}>{t.name}</span>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* TEXT — live submissions panel per team */}
-                {q.type==='text'&&(
-                  <div style={{marginBottom:14}}>
-                    <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,255,255,.35)',marginBottom:10}}>
-                      Team Submissions ({answeredCodes.length}/{teamsArr.length})
                     </div>
-                    {teamsArr.map(t=>{
-                      const ans = teamAnswers[t.code];
-                      return (
-                        <div key={t.code} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 14px',borderRadius:13,background:`${t.color}10`,border:`1.5px solid ${ans?t.color:`${t.color}25`}`,marginBottom:8,transition:'all .2s'}}>
-                          <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
-                          <span style={{fontWeight:800,fontSize:'.88rem',flex:1,color:'rgba(255,255,255,.8)'}}>{t.name}</span>
-                          {ans
-                            ? <span style={{fontWeight:900,color:'#FFE600',fontSize:'.95rem'}}>{ans.answer}</span>
-                            : <span style={{fontSize:'.78rem',color:'rgba(255,255,255,.25)',fontWeight:700}}>Waiting<span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/></span>
-                          }
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* BUZZER — show who buzzed and their answer */}
-                {q.type==='buzzer'&&(
-                  <div style={{marginBottom:14}}>
-                    <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,59,107,.7)',marginBottom:10}}>
-                      {currentQ.buzzedTeam ? '🔔 Team buzzed in!' : '🔇 Waiting for buzz…'}
-                    </div>
-                    {teamsArr.map(t=>{
-                      const isBuzzed = currentQ.buzzedTeam === t.code;
-                      const ans = teamAnswers[t.code];
-                      return (
-                        <div key={t.code} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 14px',borderRadius:13,background:isBuzzed?`${t.color}18`:'rgba(255,255,255,.03)',border:`1.5px solid ${isBuzzed?t.color:'rgba(255,255,255,.08)'}`,marginBottom:8,transition:'all .2s'}}>
-                          <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
-                          <span style={{fontWeight:800,fontSize:'.88rem',flex:1,color:'rgba(255,255,255,.8)'}}>{t.name}</span>
-                          {isBuzzed&&!ans&&<span style={{fontSize:'.78rem',color:t.color,fontWeight:800}}>🔔 Buzzed! Typing…</span>}
-                          {isBuzzed&&ans&&<span style={{fontWeight:900,color:'#FFE600',fontSize:'.95rem'}}>{ans.answer}</span>}
-                          {!isBuzzed&&!currentQ.buzzedTeam&&<span style={{fontSize:'.75rem',color:'rgba(255,255,255,.2)',fontWeight:700}}>Ready</span>}
-                          {!isBuzzed&&currentQ.buzzedTeam&&<span style={{fontSize:'.75rem',color:'rgba(255,255,255,.2)',fontWeight:700}}>Too slow</span>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <div className="divider"/>
-                <div className="row" style={{justifyContent:'flex-end',gap:10}}>
-                  <button className="btn btn-danger" onClick={revealAnswer}>Skip</button>
-                  <button className="btn btn-yellow" onClick={revealAnswer}>Reveal Answer →</button>
-                </div>
-              </>
-            );
-          })()}
-
-          {currentQ.phase==='reveal'&&(()=>{
-            const teamAnswers = currentQ.teamAnswers || {};
-            return (
-              <div className="fade">
-                {/* Correct answer */}
-                <div className="correct-box">
-                  <div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(50,215,75,.6)',marginBottom:5}}>Correct Answer</div>
-                  <div style={{fontSize:'1.15rem',fontWeight:900,color:'#32D74B'}}>{q.answer}</div>
-                </div>
-
-                {/* Multiple choice — show options with correct highlighted */}
-                {q.type==='multiple'&&q.options&&(
-                  <div style={{marginBottom:16}}>
-                    {q.options.map((opt,i)=>(
-                      <div key={i} className={`opt ${opt===q.answer?'right':''}`} style={{cursor:'default'}}>
-                        <span className="letter">{LETTERS[i]}</span>{opt}
-                        {opt===q.answer&&<span style={{marginLeft:'auto',color:'#32D74B',fontWeight:900}}>✓</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Text + Buzzer — show all team submissions vs correct answer */}
-                {(q.type==='text'||q.type==='buzzer')&&(
-                  <div style={{marginBottom:16}}>
-                    <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,255,255,.35)',marginBottom:10}}>Team Answers</div>
-                    {teamsArr.map(t=>{
-                      const ans = teamAnswers[t.code];
-                      const isCorrect = ans && ans.answer?.toLowerCase().trim() === q.answer?.toLowerCase().trim();
-                      return (
-                        <div key={t.code} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 14px',borderRadius:13,background:isCorrect?'rgba(50,215,75,.1)':'rgba(255,255,255,.03)',border:`1.5px solid ${isCorrect?'rgba(50,215,75,.3)':'rgba(255,255,255,.08)'}`,marginBottom:8}}>
-                          <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
-                          <span style={{fontWeight:800,fontSize:'.88rem',flex:1,color:'rgba(255,255,255,.75)'}}>{t.name}</span>
-                          {ans
-                            ? <span style={{fontWeight:900,fontSize:'.92rem',color:isCorrect?'#32D74B':'rgba(255,255,255,.6)'}}>{ans.answer} {isCorrect&&'✓'}</span>
-                            : <span style={{fontSize:'.78rem',color:'rgba(255,255,255,.22)',fontWeight:700}}>No answer</span>
-                          }
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <div className="divider"/>
-
-                {/* Award points panel */}
-                <div style={{background:'rgba(255,230,0,.05)',border:'1px solid rgba(255,230,0,.15)',borderRadius:16,padding:16}}>
-                  <span className="label" style={{marginBottom:12,display:'block',color:'rgba(255,230,0,.7)'}}>Award {q.points} points to:</span>
-                  <div className="award-grid">
-                    {teamsArr.map(t=>{
-                      const ans = teamAnswers[t.code];
-                      const isCorrect = ans && ans.answer?.toLowerCase().trim() === q.answer?.toLowerCase().trim();
-                      return (
-                        <button key={t.code} className="award-btn"
-                          style={{background:isCorrect?`${t.color}28`:`${t.color}10`,color:t.color,borderColor:isCorrect?t.color:`${t.color}38`,position:'relative'}}
-                          onClick={()=>awardAndNext(t.code,q.points)}>
-                          {isCorrect&&<span style={{position:'absolute',top:-8,right:-8,background:'#32D74B',color:'#07071C',borderRadius:50,width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.65rem',fontWeight:900}}>✓</span>}
-                          +{q.points} → {t.name}
-                          {ans&&<div style={{fontSize:'.72rem',opacity:.7,marginTop:3,fontWeight:700}}>"{ans.answer}"</div>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <button className="btn btn-ghost" style={{width:'100%',marginTop:10}} onClick={()=>goNext()}>No Points — Next Question →</button>
-                </div>
+                  );
+                })}
               </div>
-            );
-          })()}
+              <div style={{fontSize:'.78rem',color:'rgba(255,255,255,.3)',marginBottom:14,fontWeight:700}}>
+                {Object.keys(teamSelections).length}/{teamsArr.length} teams selected
+              </div>
+            </>)}
+
+            {/* TEXT — live per-team submissions */}
+            {q.type==='text'&&(<>
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,255,255,.35)',marginBottom:10}}>
+                  Team Answers ({Object.keys(teamAnswers).length}/{teamsArr.length})
+                </div>
+                {teamsArr.map(t=>{
+                  const ans=teamAnswers[t.code];
+                  return(
+                    <div key={t.code} className="sub-row" style={{background:`${t.color}10`,border:`1.5px solid ${ans?t.color:`${t.color}25`}`}}>
+                      <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                      <span style={{fontWeight:800,fontSize:'.88rem',flex:1}}>{t.name}</span>
+                      {ans?<span style={{fontWeight:900,color:'#FFE600',fontSize:'.95rem'}}>{ans.answer}</span>
+                        :<span style={{fontSize:'.78rem',color:'rgba(255,255,255,.25)',fontWeight:700}}>Waiting<span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/></span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </>)}
+
+            {/* BUZZER */}
+            {q.type==='buzzer'&&(<>
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,59,107,.7)',marginBottom:10}}>
+                  {currentQ.buzzedTeam?'🔔 Team buzzed in!':'🔇 Waiting for buzz…'}
+                </div>
+                {teamsArr.map(t=>{
+                  const isBuzzed=currentQ.buzzedTeam===t.code;
+                  const ans=teamAnswers[t.code];
+                  return(
+                    <div key={t.code} className="sub-row" style={{background:isBuzzed?`${t.color}18`:'rgba(255,255,255,.03)',border:`1.5px solid ${isBuzzed?t.color:'rgba(255,255,255,.08)'}`}}>
+                      <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                      <span style={{fontWeight:800,fontSize:'.88rem',flex:1}}>{t.name}</span>
+                      {isBuzzed&&!ans&&<span style={{fontSize:'.78rem',color:t.color,fontWeight:800}}>🔔 Buzzed! Typing…</span>}
+                      {isBuzzed&&ans&&<span style={{fontWeight:900,color:'#FFE600',fontSize:'.95rem'}}>{ans.answer}</span>}
+                      {!isBuzzed&&!currentQ.buzzedTeam&&<span style={{fontSize:'.75rem',color:'rgba(255,255,255,.2)',fontWeight:700}}>Ready</span>}
+                      {!isBuzzed&&currentQ.buzzedTeam&&<span style={{fontSize:'.75rem',color:'rgba(255,255,255,.2)',fontWeight:700}}>Too slow</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </>)}
+
+            <div className="divider"/>
+            <div className="row" style={{justifyContent:'flex-end',gap:10}}>
+              <button className="btn btn-danger" onClick={revealAnswer}>Skip</button>
+              <button className="btn btn-yellow" onClick={revealAnswer}>Reveal Answer →</button>
+            </div>
+          </>)}
+
+          {currentQ.phase==='reveal'&&(<div className="fade">
+            <div className="correct-box">
+              <div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(50,215,75,.6)',marginBottom:5}}>Correct Answer</div>
+              <div style={{fontSize:'1.15rem',fontWeight:900,color:'#32D74B'}}>{q.answer}</div>
+            </div>
+
+            {/* Multiple choice reveal — show who picked what */}
+            {q.type==='multiple'&&q.options&&(<div style={{marginBottom:16}}>
+              {q.options.map((opt,i)=>{
+                const isCorrect=opt===q.answer;
+                const teamsWhoSelected=teamsArr.filter(t=>teamSelections[t.code]===opt);
+                return(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:10,borderRadius:14,padding:'11px 16px',marginBottom:8,background:isCorrect?'rgba(50,215,75,.15)':'rgba(255,255,255,.04)',border:`2px solid ${isCorrect?'#32D74B':'rgba(255,255,255,.1)'}`}}>
+                    <span className="letter">{LETTERS[i]}</span>
+                    <span style={{flex:1,fontWeight:800,color:isCorrect?'#32D74B':'rgba(255,255,255,.75)'}}>{opt}</span>
+                    {isCorrect&&<span style={{color:'#32D74B',fontWeight:900,marginRight:6}}>✓</span>}
+                    <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                      {teamsWhoSelected.map(t=>(
+                        <span key={t.code} style={{fontSize:'.72rem',fontWeight:800,padding:'3px 9px',borderRadius:50,background:`${t.color}25`,color:t.color,border:`1px solid ${t.color}40`}}>{t.name}</span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>)}
+
+            {/* Text + Buzzer reveal — show all answers */}
+            {(q.type==='text'||q.type==='buzzer')&&(<div style={{marginBottom:16}}>
+              <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,255,255,.35)',marginBottom:10}}>Team Answers</div>
+              {teamsArr.map(t=>{
+                const ans=teamAnswers[t.code];
+                const isCorrect=ans&&ans.answer?.toLowerCase().trim()===q.answer?.toLowerCase().trim();
+                return(
+                  <div key={t.code} className="sub-row" style={{background:isCorrect?'rgba(50,215,75,.12)':'rgba(255,255,255,.03)',border:`1.5px solid ${isCorrect?'rgba(50,215,75,.3)':'rgba(255,255,255,.08)'}`}}>
+                    <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                    <span style={{fontWeight:800,fontSize:'.88rem',flex:1}}>{t.name}</span>
+                    {ans?<span style={{fontWeight:900,fontSize:'.92rem',color:isCorrect?'#32D74B':'rgba(255,255,255,.6)'}}>{ans.answer}{isCorrect&&' ✓'}</span>
+                      :<span style={{fontSize:'.78rem',color:'rgba(255,255,255,.22)',fontWeight:700}}>No answer</span>}
+                  </div>
+                );
+              })}
+            </div>)}
+
+            <div className="divider"/>
+            <div style={{background:'rgba(255,230,0,.05)',border:'1px solid rgba(255,230,0,.15)',borderRadius:16,padding:16}}>
+              <span className="label" style={{marginBottom:12,display:'block',color:'rgba(255,230,0,.7)'}}>Award {q.points} points to:</span>
+              <div className="award-grid">
+                {teamsArr.map(t=>{
+                  const sel=teamSelections[t.code];
+                  const ans=teamAnswers[t.code];
+                  const isCorrectSel=sel===q.answer;
+                  const isCorrectAns=ans&&ans.answer?.toLowerCase().trim()===q.answer?.toLowerCase().trim();
+                  const highlight=isCorrectSel||isCorrectAns;
+                  return(
+                    <button key={t.code} className="award-btn"
+                      style={{background:highlight?`${t.color}28`:`${t.color}10`,color:t.color,borderColor:highlight?t.color:`${t.color}38`}}
+                      onClick={()=>awardAndNext(t.code,q.points)}>
+                      {highlight&&<span style={{position:'absolute',top:-8,right:-8,background:'#32D74B',color:'#07071C',borderRadius:50,width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.65rem',fontWeight:900}}>✓</span>}
+                      +{q.points} → {t.name}
+                      {sel&&<div style={{fontSize:'.72rem',opacity:.7,marginTop:3}}>picked: {sel}</div>}
+                      {!sel&&ans&&<div style={{fontSize:'.72rem',opacity:.7,marginTop:3}}>said: {ans.answer}</div>}
+                    </button>
+                  );
+                })}
+              </div>
+              <button className="btn btn-ghost" style={{width:'100%',marginTop:10}} onClick={()=>awardAndNext(null,0)}>No Points — Next Question →</button>
+            </div>
+          </div>)}
         </div>
       </div></div>
     );
   }
 
-  // ── HOST: BONUS ────────────────────────────────────────────────────────
-  if (screen==='bonus') {
-    const br = g?.bonusRound;
-    return (
+  // BONUS
+  if(screen==='bonus'){
+    const br=g?.bonusRound;
+    return(
       <div className="app center">
         <div style={{marginBottom:14}}>
           <span className="tag" style={{background:'rgba(255,159,10,.18)',color:'#FF9F0A',border:'1px solid rgba(255,159,10,.35)',fontSize:'.85rem',padding:'6px 16px'}}>BONUS ROUND!</span>
@@ -943,9 +899,7 @@ function HostApp({onExit}) {
           <div className="award-grid">
             {teamsArr.map(t=>(
               <button key={t.code} className="award-btn" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`}}
-                onClick={()=>awardBonusAndNext(t.code)}>
-                +25 → {t.name}
-              </button>
+                onClick={()=>awardBonusAndNext(t.code)}>+25 → {t.name}</button>
             ))}
           </div>
           <button className="btn btn-ghost" style={{width:'100%',marginTop:12}} onClick={afterBonus}>Skip Bonus →</button>
@@ -954,217 +908,186 @@ function HostApp({onExit}) {
     );
   }
 
-  // ── HOST: RESULTS ──────────────────────────────────────────────────────
-  if (screen==='results') {
+  // RESULTS
+  if(screen==='results'){
     const medals=['🥇','🥈','🥉','4️⃣'];
-    return (
-      <div className="app">
-        <div style={{maxWidth:480,margin:'0 auto',paddingTop:20,textAlign:'center'}}>
-          <div style={{fontSize:'3rem',marginBottom:8}}>🎉</div>
-          <h1 className="game-title" style={{fontSize:'clamp(2.5rem,8vw,4rem)',marginBottom:4}}>Game Over!</h1>
-          <p className="subtitle" style={{marginBottom:28}}>Final Leaderboard</p>
-          {sortedTeams.map((t,i)=>(
-            <div key={t.code} className="lb-row fade" style={{border:i===0?`2px solid ${t.color}`:'1px solid rgba(255,255,255,.07)',background:i===0?`${t.color}10`:'rgba(255,255,255,.03)'}}>
-              <div className="lb-rank" style={{background:i===0?`${t.color}22`:'rgba(255,255,255,.07)',color:i===0?t.color:'rgba(255,255,255,.4)'}}>{i===0?'👑':medals[i]}</div>
-              <div style={{flex:1,textAlign:'left'}}>
-                <div style={{fontWeight:900}}>{t.name}</div>
-                <div style={{fontSize:'.77rem',color:'rgba(255,255,255,.35)'}}>Leader: {t.leader}</div>
-              </div>
-              <div style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:i===0?t.color:'rgba(255,255,255,.6)'}}>{t.score||0}</div>
+    return(
+      <div className="app"><div style={{maxWidth:480,margin:'0 auto',paddingTop:20,textAlign:'center'}}>
+        <div style={{fontSize:'3rem',marginBottom:8}}>🎉</div>
+        <h1 className="game-title" style={{fontSize:'clamp(2.5rem,8vw,4rem)',marginBottom:4}}>Game Over!</h1>
+        <p className="subtitle" style={{marginBottom:28}}>Final Leaderboard</p>
+        {sortedTeams.map((t,i)=>(
+          <div key={t.code} className="lb-row fade" style={{border:i===0?`2px solid ${t.color}`:'1px solid rgba(255,255,255,.07)',background:i===0?`${t.color}10`:'rgba(255,255,255,.03)'}}>
+            <div className="lb-rank" style={{background:i===0?`${t.color}22`:'rgba(255,255,255,.07)',color:i===0?t.color:'rgba(255,255,255,.4)'}}>{i===0?'👑':medals[i]}</div>
+            <div style={{flex:1,textAlign:'left'}}>
+              <div style={{fontWeight:900}}>{t.name}</div>
+              <div style={{fontSize:'.77rem',color:'rgba(255,255,255,.35)'}}>Leader: {t.leader}</div>
             </div>
-          ))}
-          <div className="row" style={{justifyContent:'center',marginTop:28,flexWrap:'wrap',gap:12}}>
-            <button className="btn btn-yellow" onClick={exitGame}>New Game</button>
+            <div style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:i===0?t.color:'rgba(255,255,255,.6)'}}>{t.score||0}</div>
           </div>
+        ))}
+        <div className="row" style={{justifyContent:'center',marginTop:28,flexWrap:'wrap',gap:12}}>
+          <button className="btn btn-yellow" onClick={exitGame}>New Game</button>
         </div>
-      </div>
+      </div></div>
     );
   }
-
   return null;
 }
 
-// ══════════════════════════════════════════════════════════════════════════
 // PLAYER APP
-// ══════════════════════════════════════════════════════════════════════════
-function PlayerApp({onExit}) {
-  const [screen, setScreen] = useState('join');
-  const [roomCode, setRoomCode] = useState('');
-  const [teamCode, setTeamCode] = useState('');
-  const [playerName, setPlayerName] = useState('');
-  const [playerId, setPlayerId] = useState('');
-  const [gameState, setGameState] = useState(null);
-  const [myTeamCode, setMyTeamCode] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const listenerRef = useRef(null);
+function PlayerApp({onExit}){
+  const [screen,setScreen]=useState('join');
+  const [roomCode,setRoomCode]=useState('');
+  const [teamCode,setTeamCode]=useState('');
+  const [playerName,setPlayerName]=useState('');
+  const [playerId,setPlayerId]=useState('');
+  const [gameState,setGameState]=useState(null);
+  const [myTeamCode,setMyTeamCode]=useState('');
+  const [error,setError]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [submitted,setSubmitted]=useState(false);
+  const [mySelection,setMySelection]=useState(null);
+  const [ansText,setAnsText]=useState('');
+  const listenerRef=useRef(null);
 
-  useEffect(()=>{
-    return ()=>{ if(listenerRef.current) listenerRef.current.off(); };
-  },[]);
+  useEffect(()=>{return()=>{if(listenerRef.current)listenerRef.current.off();};},[]);
 
-  const joinRoom = async () => {
-    setError(''); setLoading(true);
-    const code = roomCode.trim().toUpperCase();
-    try {
-      const snap = await db.ref(`games/${code}`).once('value');
-      if (!snap.exists()) { setError('Room not found. Check your code and try again.'); setLoading(false); return; }
-      const g = snap.val();
-      if (g.status==='results'||g.status==='ended') { setError('This game has already ended.'); setLoading(false); return; }
-      setRoomCode(code);
-      setScreen('teamcode');
-    } catch(e) { setError('Connection error. Please try again.'); }
+  const joinRoom=async()=>{
+    setError('');setLoading(true);
+    const code=roomCode.trim().toUpperCase();
+    try{
+      const snap=await db.ref(`games/${code}`).once('value');
+      if(!snap.exists()){setError('Room not found. Check your code and try again.');setLoading(false);return;}
+      const g=snap.val();
+      if(g.status==='results'||g.status==='ended'){setError('This game has already ended.');setLoading(false);return;}
+      setRoomCode(code);setScreen('teamcode');
+    }catch(e){setError('Connection error. Please try again.');}
     setLoading(false);
   };
 
-  const joinTeam = async () => {
-    setError(''); setLoading(true);
-    const tc = teamCode.trim().toUpperCase();
-    try {
-      const snap = await db.ref(`games/${roomCode}/teams/${tc}`).once('value');
-      if (!snap.exists()) { setError('Invalid team code. Ask your team leader for the correct code.'); setLoading(false); return; }
-      setMyTeamCode(tc);
-      setScreen('name');
-    } catch(e) { setError('Connection error. Please try again.'); }
+  const joinTeam=async()=>{
+    setError('');setLoading(true);
+    const tc=teamCode.trim().toUpperCase();
+    try{
+      const snap=await db.ref(`games/${roomCode}/teams/${tc}`).once('value');
+      if(!snap.exists()){setError('Invalid team code. Ask your team for the correct code.');setLoading(false);return;}
+      setMyTeamCode(tc);setScreen('name');
+    }catch(e){setError('Connection error. Please try again.');}
     setLoading(false);
   };
 
-  const joinGame = async () => {
-    if (!playerName.trim()) return;
-    setLoading(true);
-    try {
-      const pid = genCode(8);
-      const teamSnap = await db.ref(`games/${roomCode}/teams/${myTeamCode}`).once('value');
-      const team = teamSnap.val();
-      await db.ref(`games/${roomCode}/players/${pid}`).set({
-        name: playerName.trim(),
-        teamCode: myTeamCode,
-        teamName: team?.name||myTeamCode
-      });
+  const joinGame=async()=>{
+    if(!playerName.trim())return;setLoading(true);
+    try{
+      const pid=genCode(8);
+      const teamSnap=await db.ref(`games/${roomCode}/teams/${myTeamCode}`).once('value');
+      const team=teamSnap.val();
+      await db.ref(`games/${roomCode}/players/${pid}`).set({name:playerName.trim(),teamCode:myTeamCode,teamName:team?.name||myTeamCode});
       setPlayerId(pid);
-      // start listening to full game
-      const ref = db.ref(`games/${roomCode}`);
-      ref.on('value', snap=>{ if(snap.exists()) setGameState(snap.val()); });
-      listenerRef.current = ref;
+      const ref=db.ref(`games/${roomCode}`);
+      ref.on('value',snap=>{if(snap.exists())setGameState(snap.val());});
+      listenerRef.current=ref;
       setScreen('lobby');
-    } catch(e) { setError('Could not join game. Please try again.'); }
+    }catch(e){setError('Could not join. Please try again.');}
     setLoading(false);
   };
 
-  const buzzIn = async () => {
-    if (!gameState) return;
-    const teamData = gameState.teams?.[myTeamCode];
-    await db.ref(`games/${roomCode}/currentQ/buzzedTeam`).transaction(current => {
-      if (current===null||current===undefined||current==='') return myTeamCode;
-      return undefined;
-    });
-    await db.ref(`games/${roomCode}/currentQ/buzzedTeamName`).transaction(current => {
-      if (!current) return teamData?.name||myTeamCode;
-      return undefined;
-    });
+  // Reset on new question
+  useEffect(()=>{setSubmitted(false);setMySelection(null);setAnsText('');},[gameState?.currentQ?.index]);
+
+  const selectOption=async(opt)=>{
+    if(mySelection)return; // lock once selected
+    setMySelection(opt);
+    await db.ref(`games/${roomCode}/currentQ/teamSelections/${myTeamCode}`).set(opt);
   };
 
-  const submitAnswer = async (ans) => {
+  const submitAnswer=async(ans)=>{
+    const myTeamData=gameState?.teams?.[myTeamCode];
     await db.ref(`games/${roomCode}/currentQ/teamAnswers/${myTeamCode}`).set({
-      answer: ans,
-      teamName: myTeam?.name || myTeamCode,
-      color: myTeam?.color || '#888',
-      submittedAt: Date.now()
+      answer:ans,teamName:myTeamData?.name||myTeamCode,color:myTeamData?.color||'#888',submittedAt:Date.now()
     });
     await db.ref(`games/${roomCode}/currentQ/submittedAnswer`).set(ans);
     setSubmitted(true);
   };
 
-  const [ansText, setAnsText] = useState('');
-  useEffect(()=>{ setSubmitted(false); setAnsText(''); },[gameState?.currentQ?.index]);
+  const buzzIn=async()=>{
+    const teamData=gameState?.teams?.[myTeamCode];
+    await db.ref(`games/${roomCode}/currentQ/buzzedTeam`).transaction(current=>{
+      if(current===null||current===undefined||current==='')return myTeamCode;
+      return undefined;
+    });
+    await db.ref(`games/${roomCode}/currentQ/buzzedTeamName`).transaction(current=>{
+      if(!current)return teamData?.name||myTeamCode;
+      return undefined;
+    });
+  };
 
-  if (!gameState && screen==='lobby') return (
-    <div className="app center">
-      <div style={{fontSize:'2rem',marginBottom:12}}>🎮</div>
-      <p style={{color:'rgba(255,255,255,.5)',fontSize:'1rem'}}>Connecting to game<span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/></p>
-    </div>
-  );
+  const g=gameState;
+  const status=g?.status;
+  const myTeam=g?.teams?.[myTeamCode];
+  const teamsArr=g?toTeamsArr(g.teams):[];
+  const sortedTeams=[...teamsArr].sort((a,b)=>b.score-a.score);
+  const qs=g?toArr(g.questions):[];
+  const q=g&&qs.length>0?qs[g.currentQ?.index||0]:null;
+  const currentQ=g?.currentQ||{};
+  const isBuzzed=currentQ.buzzedTeam===myTeamCode;
+  const someoneElseBuzzed=currentQ.buzzedTeam&&currentQ.buzzedTeam!==myTeamCode;
 
-  const g = gameState;
-  const status = g?.status;
-  const myTeam = g?.teams?.[myTeamCode];
-  const teamsArr = g ? toTeamsArr(g.teams) : [];
-  const sortedTeams = [...teamsArr].sort((a,b)=>b.score-a.score);
-  const qs = g ? toArr(g.questions) : [];
-  const q = g && qs.length>0 ? qs[g.currentQ?.index||0] : null;
-  const currentQ = g?.currentQ||{};
-  const isBuzzed = currentQ.buzzedTeam === myTeamCode;
-  const someoneElseBuzzed = currentQ.buzzedTeam && currentQ.buzzedTeam !== myTeamCode;
-
-  // auto-advance player screen based on game status
-  if (screen==='lobby' && (status==='playing'||status==='bonus'||status==='results')) {
-    if (status==='playing') setScreen('playing');
-    else if (status==='bonus') setScreen('bonus');
-    else if (status==='results') setScreen('results');
+  if(screen==='lobby'&&(status==='playing'||status==='bonus'||status==='results')){
+    if(status==='playing')setScreen('playing');
+    else if(status==='bonus')setScreen('bonus');
+    else if(status==='results')setScreen('results');
   }
-  if (screen==='playing' && status==='bonus') setScreen('bonus');
-  if (screen==='bonus' && status==='playing') setScreen('playing');
-  if (screen==='playing' && status==='results') setScreen('results');
-  if (screen==='bonus' && status==='results') setScreen('results');
+  if(screen==='playing'&&status==='bonus')setScreen('bonus');
+  if(screen==='bonus'&&status==='playing')setScreen('playing');
+  if(screen==='playing'&&status==='results')setScreen('results');
+  if(screen==='bonus'&&status==='results')setScreen('results');
 
-  // ── PLAYER: JOIN ───────────────────────────────────────────────────────
-  if (screen==='join') return (
+  if(screen==='join')return(
     <div className="app center">
       <h1 className="game-title" style={{fontSize:'clamp(2.5rem,8vw,4rem)',marginBottom:4}}>TRIVIA NIGHT</h1>
       <p className="subtitle" style={{marginBottom:32}}>Enter your room code to join</p>
       <div className="player-card">
         <span className="label" style={{textAlign:'center',display:'block',marginBottom:12}}>Room Code</span>
         <input className="inp inp-big" placeholder="e.g. ABC123" value={roomCode} maxLength={6}
-          onChange={e=>setRoomCode(e.target.value.toUpperCase())}
-          onKeyDown={e=>e.key==='Enter'&&joinRoom()}/>
+          onChange={e=>setRoomCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinRoom()}/>
         {error&&<p style={{color:'#FF3B6B',fontSize:'.83rem',marginTop:10,textAlign:'center',fontWeight:700}}>{error}</p>}
-        <button className="btn btn-yellow btn-full" style={{marginTop:16}} onClick={joinRoom} disabled={roomCode.length<4||loading}>
-          {loading?'Checking…':'Join Game →'}
-        </button>
+        <button className="btn btn-yellow btn-full" style={{marginTop:16}} onClick={joinRoom} disabled={roomCode.length<4||loading}>{loading?'Checking…':'Join Game →'}</button>
         <button className="btn btn-ghost btn-full" style={{marginTop:10}} onClick={onExit}>← Back</button>
       </div>
     </div>
   );
 
-  // ── PLAYER: TEAM CODE ──────────────────────────────────────────────────
-  if (screen==='teamcode') return (
+  if(screen==='teamcode')return(
     <div className="app center">
       <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:'#FFE600',marginBottom:4}}>Enter Team Code</h2>
-      <p style={{color:'rgba(255,255,255,.4)',marginBottom:28,fontSize:'.9rem'}}>Get this from your team leader</p>
+      <p style={{color:'rgba(255,255,255,.4)',marginBottom:28,fontSize:'.9rem'}}>Get this code from your team</p>
       <div className="player-card">
         <span className="label" style={{textAlign:'center',display:'block',marginBottom:12}}>Team Code</span>
         <input className="inp inp-big" placeholder="e.g. RED7" value={teamCode} maxLength={4}
-          onChange={e=>setTeamCode(e.target.value.toUpperCase())}
-          onKeyDown={e=>e.key==='Enter'&&joinTeam()}/>
+          onChange={e=>setTeamCode(e.target.value.toUpperCase())} onKeyDown={e=>e.key==='Enter'&&joinTeam()}/>
         {error&&<p style={{color:'#FF3B6B',fontSize:'.83rem',marginTop:10,textAlign:'center',fontWeight:700}}>{error}</p>}
-        <button className="btn btn-yellow btn-full" style={{marginTop:16}} onClick={joinTeam} disabled={teamCode.length<3||loading}>
-          {loading?'Checking…':'Confirm Team →'}
-        </button>
+        <button className="btn btn-yellow btn-full" style={{marginTop:16}} onClick={joinTeam} disabled={teamCode.length<3||loading}>{loading?'Checking…':'Confirm Team →'}</button>
         <button className="btn btn-ghost btn-full" style={{marginTop:10}} onClick={()=>{setScreen('join');setError('');}}>← Back</button>
       </div>
     </div>
   );
 
-  // ── PLAYER: NAME ───────────────────────────────────────────────────────
-  if (screen==='name') return (
+  if(screen==='name')return(
     <div className="app center">
       <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:'#FFE600',marginBottom:4}}>What's your name?</h2>
       <p style={{color:'rgba(255,255,255,.4)',marginBottom:28,fontSize:'.9rem'}}>This is how you'll appear in the game</p>
       <div className="player-card">
         <input className="inp" style={{fontSize:'1.1rem',padding:'14px 16px',marginBottom:14,textAlign:'center'}}
-          placeholder="Your name…" value={playerName} onChange={e=>setPlayerName(e.target.value)}
-          onKeyDown={e=>e.key==='Enter'&&joinGame()}/>
+          placeholder="Your name…" value={playerName} onChange={e=>setPlayerName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&joinGame()}/>
         {error&&<p style={{color:'#FF3B6B',fontSize:'.83rem',marginTop:10,textAlign:'center',fontWeight:700}}>{error}</p>}
-        <button className="btn btn-yellow btn-full" onClick={joinGame} disabled={!playerName.trim()||loading}>
-          {loading?'Joining…':'Join Game!'}
-        </button>
+        <button className="btn btn-yellow btn-full" onClick={joinGame} disabled={!playerName.trim()||loading}>{loading?'Joining…':'Join Game!'}</button>
       </div>
     </div>
   );
 
-  // ── PLAYER: LOBBY ──────────────────────────────────────────────────────
-  if (screen==='lobby') return (
+  if(screen==='lobby')return(
     <div className="app center">
       <div style={{fontSize:'3rem',marginBottom:16}}>🎮</div>
       <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:'#FFE600',marginBottom:6}}>You're in!</h2>
@@ -1177,26 +1100,21 @@ function PlayerApp({onExit}) {
     </div>
   );
 
-  // ── PLAYER: PLAYING ────────────────────────────────────────────────────
-  if (screen==='playing') {
-    if (!q) return <div className="app center"><p style={{color:'rgba(255,255,255,.4)'}}>Loading question…</p></div>;
-
-    return (
+  if(screen==='playing'){
+    if(!q)return<div className="app center"><p style={{color:'rgba(255,255,255,.4)'}}>Loading question…</p></div>;
+    return(
       <div className="app"><div className="pwrap">
-        {/* Score bar */}
-        <div className="player-score-row">
+        <div style={{display:'flex',gap:7,flexWrap:'wrap',marginBottom:10}}>
           {teamsArr.map(t=>(
-            <div key={t.code} className="score-badge" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`,border:`2px solid ${t.code===myTeamCode?t.color:`${t.color}38`}`}}>
+            <div key={t.code} className="score-badge" style={{background:`${t.color}14`,color:t.color,borderColor:t.code===myTeamCode?t.color:`${t.color}38`,borderWidth:t.code===myTeamCode?2:1.5}}>
               <span style={{fontSize:'.7rem',opacity:.75}}>{t.name}</span><strong>{t.score||0}</strong>
-              {t.code===myTeamCode&&<span style={{fontSize:'.65rem',opacity:.7}}>YOU</span>}
+              {t.code===myTeamCode&&<span style={{fontSize:'.6rem',opacity:.6}}>YOU</span>}
             </div>
           ))}
-          <span style={{marginLeft:'auto',fontSize:'.78rem',color:'rgba(255,255,255,.3)',flexShrink:0}}>Q {(currentQ.index||0)+1}/{qs.length}</span>
+          <span style={{marginLeft:'auto',fontSize:'.78rem',color:'rgba(255,255,255,.3)',flexShrink:0,alignSelf:'center'}}>Q {(currentQ.index||0)+1}/{qs.length}</span>
         </div>
-
         <div className="prog-bar"><div className="prog-fill" style={{width:`${((currentQ.index||0)/Math.max(qs.length,1))*100}%`}}/></div>
 
-        {/* Question card */}
         <div className="card">
           <div className="row" style={{justifyContent:'space-between',marginBottom:14}}>
             <span className="qtype-badge" style={{background:`${TC[q.type]}15`,color:TC[q.type],borderColor:`${TC[q.type]}35`}}>{TL[q.type]}</span>
@@ -1204,97 +1122,88 @@ function PlayerApp({onExit}) {
           </div>
           <div style={{fontSize:'clamp(.95rem,3vw,1.15rem)',fontWeight:900,lineHeight:1.5,marginBottom:22}}>{q.question}</div>
 
-          {currentQ.phase==='question'&&(
-            <>
-              {/* Multiple choice - players see options but can't click */}
-              {q.type==='multiple'&&q.options&&(
-                <div style={{marginBottom:16}}>
-                  {q.options.map((opt,i)=>(
-                    <div key={i} className="opt opt-player" style={{cursor:'default',opacity:.75}}>
-                      <span className="letter">{LETTERS[i]}</span>{opt}
-                    </div>
-                  ))}
-                </div>
-              )}
+          {currentQ.phase==='question'&&(<>
+            {/* MULTIPLE CHOICE — anyone can tap to select for their team */}
+            {q.type==='multiple'&&q.options&&(<>
+              {q.options.map((opt,i)=>(
+                <button key={i} className={`opt ${mySelection===opt?'picked':''}`}
+                  style={{cursor:mySelection?'default':'pointer'}}
+                  onClick={()=>selectOption(opt)}>
+                  <span className="letter">{LETTERS[i]}</span>{opt}
+                  {mySelection===opt&&<span style={{marginLeft:'auto',fontSize:'.75rem',color:'#FFE600',fontWeight:800}}>YOUR PICK</span>}
+                </button>
+              ))}
+              {mySelection&&<p style={{fontSize:'.82rem',color:'rgba(255,255,255,.4)',textAlign:'center',marginTop:6}}>Locked in — waiting for host to reveal…</p>}
+            </>)}
 
-              {/* Text answer */}
-              {q.type==='text'&&!submitted&&(
-                <div style={{marginBottom:14}}>
-                  <input className="inp" style={{fontSize:'1rem',padding:'13px 16px',marginBottom:10}}
-                    placeholder="Type your team's answer…" value={ansText} onChange={e=>setAnsText(e.target.value)}/>
-                  <button className="btn btn-yellow btn-full" onClick={()=>submitAnswer(ansText)} disabled={!ansText.trim()}>Submit Answer</button>
-                </div>
-              )}
-              {q.type==='text'&&submitted&&(
-                <div style={{padding:14,borderRadius:12,background:'rgba(50,215,75,.1)',border:'1.5px solid rgba(50,215,75,.25)',color:'#32D74B',fontWeight:800,marginBottom:14,textAlign:'center'}}>
+            {/* TEXT — anyone can type and submit */}
+            {q.type==='text'&&(<>
+              {!submitted?(<>
+                <input className="inp" style={{fontSize:'1rem',padding:'13px 16px',marginBottom:10}}
+                  placeholder="Type your team's answer…" value={ansText} onChange={e=>setAnsText(e.target.value)}/>
+                <button className="btn btn-yellow btn-full" onClick={()=>submitAnswer(ansText)} disabled={!ansText.trim()}>Submit Answer</button>
+              </>):(
+                <div style={{padding:14,borderRadius:12,background:'rgba(50,215,75,.1)',border:'1.5px solid rgba(50,215,75,.25)',color:'#32D74B',fontWeight:800,textAlign:'center'}}>
                   ✓ Answer submitted! Waiting for host…
                 </div>
               )}
+            </>)}
 
-              {/* Buzzer */}
-              {q.type==='buzzer'&&(
-                <>
-                  {!currentQ.buzzedTeam && (
-                    <button className="buzz-btn"
-                      style={{borderColor:myTeam?.color||'#FFE600',background:`${myTeam?.color||'#FFE600'}18`,color:myTeam?.color||'#FFE600'}}
-                      onClick={buzzIn}>
-                      🔔 BUZZ IN!
-                    </button>
-                  )}
-                  {isBuzzed&&(
-                    <div>
-                      <div style={{padding:14,borderRadius:12,background:`${myTeam?.color||'#FFE600'}18`,border:`2px solid ${myTeam?.color||'#FFE600'}`,color:myTeam?.color||'#FFE600',fontWeight:900,fontSize:'1.1rem',textAlign:'center',marginBottom:12}}>
-                        🔔 YOUR TEAM BUZZED IN!
-                      </div>
-                      {!submitted?(
-                        <div>
-                          <input className="inp" style={{fontSize:'1rem',padding:'13px 16px',marginBottom:10}}
-                            placeholder="Type your answer…" value={ansText} onChange={e=>setAnsText(e.target.value)}/>
-                          <button className="btn btn-yellow btn-full" onClick={()=>submitAnswer(ansText)} disabled={!ansText.trim()}>Submit Answer</button>
-                        </div>
-                      ):(
-                        <div style={{padding:12,borderRadius:12,background:'rgba(50,215,75,.1)',border:'1.5px solid rgba(50,215,75,.25)',color:'#32D74B',fontWeight:800,textAlign:'center'}}>
-                          ✓ Answer submitted!
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {someoneElseBuzzed&&(
-                    <div style={{padding:14,borderRadius:12,background:'rgba(255,59,107,.08)',border:'1.5px solid rgba(255,59,107,.2)',color:'rgba(255,255,255,.6)',fontWeight:700,textAlign:'center'}}>
-                      {currentQ.buzzedTeamName||'Another team'} buzzed in first!
-                    </div>
-                  )}
-                </>
+            {/* BUZZER — anyone can buzz in for their team */}
+            {q.type==='buzzer'&&(<>
+              {!currentQ.buzzedTeam&&(
+                <button className="buzz-btn"
+                  style={{borderColor:myTeam?.color||'#FFE600',background:`${myTeam?.color||'#FFE600'}18`,color:myTeam?.color||'#FFE600'}}
+                  onClick={buzzIn}>
+                  🔔 BUZZ IN!
+                </button>
               )}
-            </>
-          )}
-
-          {currentQ.phase==='reveal'&&(
-            <div className="fade">
-              <div className="correct-box">
-                <div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(50,215,75,.6)',marginBottom:5}}>Correct Answer</div>
-                <div style={{fontSize:'1.15rem',fontWeight:900,color:'#32D74B'}}>{q.answer}</div>
-              </div>
-              {q.type==='multiple'&&q.options&&q.options.map((opt,i)=>(
-                <div key={i} className={`opt opt-player ${opt===q.answer?'right':''}`} style={{cursor:'default'}}>
-                  <span className="letter">{LETTERS[i]}</span>{opt}
-                  {opt===q.answer&&<span style={{marginLeft:'auto',color:'#32D74B',fontWeight:900}}>✓</span>}
+              {isBuzzed&&(<>
+                <div style={{padding:14,borderRadius:12,background:`${myTeam?.color||'#FFE600'}18`,border:`2px solid ${myTeam?.color||'#FFE600'}`,color:myTeam?.color||'#FFE600',fontWeight:900,fontSize:'1.1rem',textAlign:'center',marginBottom:12}}>
+                  🔔 YOUR TEAM BUZZED IN!
                 </div>
-              ))}
-              <div style={{padding:12,borderRadius:12,background:'rgba(255,255,255,.05)',marginTop:12,textAlign:'center',fontSize:'.85rem',color:'rgba(255,255,255,.45)'}}>
-                Waiting for host to award points…
-              </div>
+                {!submitted?(<>
+                  <input className="inp" style={{fontSize:'1rem',padding:'13px 16px',marginBottom:10}}
+                    placeholder="Type your answer…" value={ansText} onChange={e=>setAnsText(e.target.value)}/>
+                  <button className="btn btn-yellow btn-full" onClick={()=>submitAnswer(ansText)} disabled={!ansText.trim()}>Submit Answer</button>
+                </>):(
+                  <div style={{padding:12,borderRadius:12,background:'rgba(50,215,75,.1)',border:'1.5px solid rgba(50,215,75,.25)',color:'#32D74B',fontWeight:800,textAlign:'center'}}>
+                    ✓ Answer submitted!
+                  </div>
+                )}
+              </>)}
+              {someoneElseBuzzed&&(
+                <div style={{padding:14,borderRadius:12,background:'rgba(255,59,107,.08)',border:'1.5px solid rgba(255,59,107,.2)',color:'rgba(255,255,255,.6)',fontWeight:700,textAlign:'center'}}>
+                  {currentQ.buzzedTeamName||'Another team'} buzzed in first!
+                </div>
+              )}
+            </>)}
+          </>)}
+
+          {currentQ.phase==='reveal'&&(<div className="fade">
+            <div className="correct-box">
+              <div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(50,215,75,.6)',marginBottom:5}}>Correct Answer</div>
+              <div style={{fontSize:'1.15rem',fontWeight:900,color:'#32D74B'}}>{q.answer}</div>
             </div>
-          )}
+            {q.type==='multiple'&&q.options&&q.options.map((opt,i)=>(
+              <div key={i} className={`opt ${opt===q.answer?'right':opt===mySelection&&opt!==q.answer?'wrong':''}`} style={{cursor:'default'}}>
+                <span className="letter">{LETTERS[i]}</span>{opt}
+                {opt===q.answer&&<span style={{marginLeft:'auto',color:'#32D74B',fontWeight:900}}>✓</span>}
+                {opt===mySelection&&opt!==q.answer&&<span style={{marginLeft:'auto',fontSize:'.75rem',color:'#FF3B6B',fontWeight:800}}>your pick</span>}
+              </div>
+            ))}
+            <div style={{padding:12,borderRadius:12,background:'rgba(255,255,255,.05)',marginTop:12,textAlign:'center',fontSize:'.85rem',color:'rgba(255,255,255,.45)'}}>
+              Waiting for host to award points…
+            </div>
+          </div>)}
         </div>
       </div></div>
     );
   }
 
-  // ── PLAYER: BONUS ──────────────────────────────────────────────────────
-  if (screen==='bonus') {
-    const br = g?.bonusRound;
-    return (
+  if(screen==='bonus'){
+    const br=g?.bonusRound;
+    return(
       <div className="app center">
         <div style={{marginBottom:14}}>
           <span className="tag" style={{background:'rgba(255,159,10,.18)',color:'#FF9F0A',border:'1px solid rgba(255,159,10,.35)',fontSize:'.85rem',padding:'6px 16px'}}>BONUS ROUND!</span>
@@ -1311,38 +1220,30 @@ function PlayerApp({onExit}) {
     );
   }
 
-  // ── PLAYER: RESULTS ────────────────────────────────────────────────────
-  if (screen==='results') {
+  if(screen==='results'){
     const medals=['🥇','🥈','🥉','4️⃣'];
-    return (
-      <div className="app">
-        <div style={{maxWidth:480,margin:'0 auto',paddingTop:20,textAlign:'center'}}>
-          <div style={{fontSize:'3rem',marginBottom:8}}>🎉</div>
-          <h1 className="game-title" style={{fontSize:'clamp(2.5rem,8vw,4rem)',marginBottom:4}}>Game Over!</h1>
-          <p className="subtitle" style={{marginBottom:28}}>Final Leaderboard</p>
-          {sortedTeams.map((t,i)=>(
-            <div key={t.code} className="lb-row fade"
-              style={{border:t.code===myTeamCode?`2px solid ${t.color}`:i===0?`2px solid ${t.color}`:'1px solid rgba(255,255,255,.07)',
-                background:i===0?`${t.color}10`:'rgba(255,255,255,.03)'}}>
-              <div className="lb-rank" style={{background:i===0?`${t.color}22`:'rgba(255,255,255,.07)',color:i===0?t.color:'rgba(255,255,255,.4)'}}>{i===0?'👑':medals[i]}</div>
-              <div style={{flex:1,textAlign:'left'}}>
-                <div style={{fontWeight:900}}>{t.name}{t.code===myTeamCode&&<span style={{marginLeft:8,fontSize:'.75rem',color:'rgba(255,255,255,.4)',fontWeight:700}}>YOUR TEAM</span>}</div>
-                <div style={{fontSize:'.77rem',color:'rgba(255,255,255,.35)'}}>Leader: {t.leader}</div>
-              </div>
-              <div style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:i===0?t.color:'rgba(255,255,255,.6)'}}>{t.score||0}</div>
+    return(
+      <div className="app"><div style={{maxWidth:480,margin:'0 auto',paddingTop:20,textAlign:'center'}}>
+        <div style={{fontSize:'3rem',marginBottom:8}}>🎉</div>
+        <h1 className="game-title" style={{fontSize:'clamp(2.5rem,8vw,4rem)',marginBottom:4}}>Game Over!</h1>
+        <p className="subtitle" style={{marginBottom:28}}>Final Leaderboard</p>
+        {sortedTeams.map((t,i)=>(
+          <div key={t.code} className="lb-row fade" style={{border:t.code===myTeamCode?`2px solid ${t.color}`:i===0?`2px solid ${t.color}`:'1px solid rgba(255,255,255,.07)',background:i===0?`${t.color}10`:'rgba(255,255,255,.03)'}}>
+            <div className="lb-rank" style={{background:i===0?`${t.color}22`:'rgba(255,255,255,.07)',color:i===0?t.color:'rgba(255,255,255,.4)'}}>{i===0?'👑':medals[i]}</div>
+            <div style={{flex:1,textAlign:'left'}}>
+              <div style={{fontWeight:900}}>{t.name}{t.code===myTeamCode&&<span style={{marginLeft:8,fontSize:'.72rem',color:'rgba(255,255,255,.38)',fontWeight:700}}>YOUR TEAM</span>}</div>
             </div>
-          ))}
-          <button className="btn btn-yellow" style={{marginTop:28}} onClick={onExit}>Play Again</button>
-        </div>
-      </div>
+            <div style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:i===0?t.color:'rgba(255,255,255,.6)'}}>{t.score||0}</div>
+          </div>
+        ))}
+        <button className="btn btn-yellow" style={{marginTop:28}} onClick={onExit}>Play Again</button>
+      </div></div>
     );
   }
-
   return null;
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root=ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App/>);
 </script>
 </body>
