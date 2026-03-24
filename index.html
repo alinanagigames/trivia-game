@@ -405,7 +405,7 @@ function HostApp({onExit}) {
     }
 
     await db.ref(`games/${roomCode}`).update({
-      currentQ: {index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:''},
+      currentQ: {index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:'',teamAnswers:{}},
       roundsPlayed: nr,
       status: 'playing'
     });
@@ -423,7 +423,7 @@ function HostApp({onExit}) {
     await db.ref(`games/${roomCode}`).update({
       bonusRound: null,
       status: 'playing',
-      currentQ: {index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:''}
+      currentQ: {index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:'',teamAnswers:{}}
     });
   };
 
@@ -772,35 +772,8 @@ function HostApp({onExit}) {
         </div>
         <div className="prog-bar"><div className="prog-fill" style={{width:`${prog}%`}}/></div>
 
-        {/* Buzz panel */}
-        {currentQ.phase==='question' && q.type!=='text' && (
-          <div className="buzz-panel">
-            <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,59,107,.7)',marginBottom:8}}>
-              {buzzedTeamData ? '🔔 Buzzed In!' : '🔇 Waiting for buzz…'}
-            </div>
-            {buzzedTeamData ? (
-              <div>
-                <div style={{fontWeight:900,fontSize:'1.05rem',color:buzzedTeamData.color,marginBottom:6}}>{buzzedTeamData.name} buzzed in!</div>
-                {currentQ.submittedAnswer && (
-                  <div style={{background:'rgba(255,255,255,.07)',borderRadius:10,padding:'10px 14px',fontSize:'.92rem',fontWeight:700,color:'rgba(255,255,255,.8)'}}>
-                    Answer: <span style={{color:'#FFE600'}}>{currentQ.submittedAnswer}</span>
-                  </div>
-                )}
-                {!currentQ.submittedAnswer && <p style={{fontSize:'.82rem',color:'rgba(255,255,255,.4)'}}>Waiting for their answer…</p>}
-              </div>
-            ) : (
-              <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-                {teamsArr.map(t=>(
-                  <span key={t.code} style={{fontSize:'.82rem',color:'rgba(255,255,255,.35)',fontWeight:700,padding:'4px 12px',borderRadius:50,border:'1px solid rgba(255,255,255,.1)'}}>
-                    {t.name}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="card">
+          {/* Question header */}
           <div className="row" style={{justifyContent:'space-between',marginBottom:14}}>
             <span className="qtype-badge" style={{background:`${TC[q.type]}15`,color:TC[q.type],borderColor:`${TC[q.type]}35`}}>{TL[q.type]}</span>
             <div className="row" style={{gap:8}}>
@@ -808,55 +781,147 @@ function HostApp({onExit}) {
               <span className="tag" style={{background:'rgba(255,230,0,.1)',color:'#FFE600',border:'1px solid rgba(255,230,0,.2)'}}>{q.points} pts</span>
             </div>
           </div>
-          <div style={{fontSize:'clamp(1rem,3vw,1.25rem)',fontWeight:900,lineHeight:1.45,marginBottom:22}}>{q.question}</div>
+          <div style={{fontSize:'clamp(1rem,3vw,1.25rem)',fontWeight:900,lineHeight:1.45,marginBottom:20}}>{q.question}</div>
 
-          {currentQ.phase==='question'&&(
-            <>
-              {q.type==='multiple'&&q.options&&q.options.map((opt,i)=>(
-                <div key={i} className="opt" style={{cursor:'default'}}><span className="letter">{LETTERS[i]}</span>{opt}</div>
-              ))}
-              {q.type==='text'&&(
-                <div style={{padding:14,borderRadius:12,background:'rgba(255,255,255,.05)',marginBottom:14,fontSize:'.9rem',color:'rgba(255,255,255,.5)'}}>
-                  {currentQ.submittedAnswer ? <span style={{color:'#FFE600',fontWeight:800}}>{currentQ.submittedAnswer}</span> : 'Waiting for team leader to type answer…'}
-                </div>
-              )}
-              <div className="divider"/>
-              <div className="row" style={{justifyContent:'flex-end',gap:10}}>
-                <button className="btn btn-danger" onClick={revealAnswer}>Skip</button>
-                <button className="btn btn-yellow" onClick={revealAnswer}>Reveal Answer →</button>
-              </div>
-            </>
-          )}
+          {currentQ.phase==='question'&&(()=>{
+            const teamAnswers = currentQ.teamAnswers || {};
+            const answeredCodes = Object.keys(teamAnswers);
 
-          {currentQ.phase==='reveal'&&(
-            <div className="fade">
-              <div className="correct-box">
-                <div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(50,215,75,.6)',marginBottom:5}}>Correct Answer</div>
-                <div style={{fontSize:'1.15rem',fontWeight:900,color:'#32D74B'}}>{q.answer}</div>
-              </div>
-              {q.type==='multiple'&&q.options&&(
-                <div style={{marginBottom:14}}>
-                  {q.options.map((opt,i)=>(
-                    <div key={i} className={`opt ${opt===q.answer?'right':''}`} style={{cursor:'default'}}>
-                      <span className="letter">{LETTERS[i]}</span>{opt}
-                      {opt===q.answer&&<span style={{marginLeft:'auto',color:'#32D74B',fontWeight:900}}>✓</span>}
+            return (
+              <>
+                {/* MULTIPLE CHOICE — show options, host awards after reveal */}
+                {q.type==='multiple'&&q.options&&(
+                  <div style={{marginBottom:14}}>
+                    {q.options.map((opt,i)=>(
+                      <div key={i} className="opt" style={{cursor:'default'}}>
+                        <span className="letter">{LETTERS[i]}</span>{opt}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* TEXT — live submissions panel per team */}
+                {q.type==='text'&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,255,255,.35)',marginBottom:10}}>
+                      Team Submissions ({answeredCodes.length}/{teamsArr.length})
                     </div>
-                  ))}
+                    {teamsArr.map(t=>{
+                      const ans = teamAnswers[t.code];
+                      return (
+                        <div key={t.code} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 14px',borderRadius:13,background:`${t.color}10`,border:`1.5px solid ${ans?t.color:`${t.color}25`}`,marginBottom:8,transition:'all .2s'}}>
+                          <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                          <span style={{fontWeight:800,fontSize:'.88rem',flex:1,color:'rgba(255,255,255,.8)'}}>{t.name}</span>
+                          {ans
+                            ? <span style={{fontWeight:900,color:'#FFE600',fontSize:'.95rem'}}>{ans.answer}</span>
+                            : <span style={{fontSize:'.78rem',color:'rgba(255,255,255,.25)',fontWeight:700}}>Waiting<span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/></span>
+                          }
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* BUZZER — show who buzzed and their answer */}
+                {q.type==='buzzer'&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,59,107,.7)',marginBottom:10}}>
+                      {currentQ.buzzedTeam ? '🔔 Team buzzed in!' : '🔇 Waiting for buzz…'}
+                    </div>
+                    {teamsArr.map(t=>{
+                      const isBuzzed = currentQ.buzzedTeam === t.code;
+                      const ans = teamAnswers[t.code];
+                      return (
+                        <div key={t.code} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 14px',borderRadius:13,background:isBuzzed?`${t.color}18`:'rgba(255,255,255,.03)',border:`1.5px solid ${isBuzzed?t.color:'rgba(255,255,255,.08)'}`,marginBottom:8,transition:'all .2s'}}>
+                          <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                          <span style={{fontWeight:800,fontSize:'.88rem',flex:1,color:'rgba(255,255,255,.8)'}}>{t.name}</span>
+                          {isBuzzed&&!ans&&<span style={{fontSize:'.78rem',color:t.color,fontWeight:800}}>🔔 Buzzed! Typing…</span>}
+                          {isBuzzed&&ans&&<span style={{fontWeight:900,color:'#FFE600',fontSize:'.95rem'}}>{ans.answer}</span>}
+                          {!isBuzzed&&!currentQ.buzzedTeam&&<span style={{fontSize:'.75rem',color:'rgba(255,255,255,.2)',fontWeight:700}}>Ready</span>}
+                          {!isBuzzed&&currentQ.buzzedTeam&&<span style={{fontSize:'.75rem',color:'rgba(255,255,255,.2)',fontWeight:700}}>Too slow</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="divider"/>
+                <div className="row" style={{justifyContent:'flex-end',gap:10}}>
+                  <button className="btn btn-danger" onClick={revealAnswer}>Skip</button>
+                  <button className="btn btn-yellow" onClick={revealAnswer}>Reveal Answer →</button>
                 </div>
-              )}
-              <div className="divider"/>
-              <span className="label" style={{marginBottom:8,display:'block'}}>Award {q.points} points to:</span>
-              <div className="award-grid">
-                {teamsArr.map(t=>(
-                  <button key={t.code} className="award-btn" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`}}
-                    onClick={()=>awardAndNext(t.code,q.points)}>
-                    +{q.points} → {t.name}
-                  </button>
-                ))}
+              </>
+            );
+          })()}
+
+          {currentQ.phase==='reveal'&&(()=>{
+            const teamAnswers = currentQ.teamAnswers || {};
+            return (
+              <div className="fade">
+                {/* Correct answer */}
+                <div className="correct-box">
+                  <div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(50,215,75,.6)',marginBottom:5}}>Correct Answer</div>
+                  <div style={{fontSize:'1.15rem',fontWeight:900,color:'#32D74B'}}>{q.answer}</div>
+                </div>
+
+                {/* Multiple choice — show options with correct highlighted */}
+                {q.type==='multiple'&&q.options&&(
+                  <div style={{marginBottom:16}}>
+                    {q.options.map((opt,i)=>(
+                      <div key={i} className={`opt ${opt===q.answer?'right':''}`} style={{cursor:'default'}}>
+                        <span className="letter">{LETTERS[i]}</span>{opt}
+                        {opt===q.answer&&<span style={{marginLeft:'auto',color:'#32D74B',fontWeight:900}}>✓</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Text + Buzzer — show all team submissions vs correct answer */}
+                {(q.type==='text'||q.type==='buzzer')&&(
+                  <div style={{marginBottom:16}}>
+                    <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,255,255,.35)',marginBottom:10}}>Team Answers</div>
+                    {teamsArr.map(t=>{
+                      const ans = teamAnswers[t.code];
+                      const isCorrect = ans && ans.answer?.toLowerCase().trim() === q.answer?.toLowerCase().trim();
+                      return (
+                        <div key={t.code} style={{display:'flex',alignItems:'center',gap:12,padding:'11px 14px',borderRadius:13,background:isCorrect?'rgba(50,215,75,.1)':'rgba(255,255,255,.03)',border:`1.5px solid ${isCorrect?'rgba(50,215,75,.3)':'rgba(255,255,255,.08)'}`,marginBottom:8}}>
+                          <div style={{width:9,height:9,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                          <span style={{fontWeight:800,fontSize:'.88rem',flex:1,color:'rgba(255,255,255,.75)'}}>{t.name}</span>
+                          {ans
+                            ? <span style={{fontWeight:900,fontSize:'.92rem',color:isCorrect?'#32D74B':'rgba(255,255,255,.6)'}}>{ans.answer} {isCorrect&&'✓'}</span>
+                            : <span style={{fontSize:'.78rem',color:'rgba(255,255,255,.22)',fontWeight:700}}>No answer</span>
+                          }
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="divider"/>
+
+                {/* Award points panel */}
+                <div style={{background:'rgba(255,230,0,.05)',border:'1px solid rgba(255,230,0,.15)',borderRadius:16,padding:16}}>
+                  <span className="label" style={{marginBottom:12,display:'block',color:'rgba(255,230,0,.7)'}}>Award {q.points} points to:</span>
+                  <div className="award-grid">
+                    {teamsArr.map(t=>{
+                      const ans = teamAnswers[t.code];
+                      const isCorrect = ans && ans.answer?.toLowerCase().trim() === q.answer?.toLowerCase().trim();
+                      return (
+                        <button key={t.code} className="award-btn"
+                          style={{background:isCorrect?`${t.color}28`:`${t.color}10`,color:t.color,borderColor:isCorrect?t.color:`${t.color}38`,position:'relative'}}
+                          onClick={()=>awardAndNext(t.code,q.points)}>
+                          {isCorrect&&<span style={{position:'absolute',top:-8,right:-8,background:'#32D74B',color:'#07071C',borderRadius:50,width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.65rem',fontWeight:900}}>✓</span>}
+                          +{q.points} → {t.name}
+                          {ans&&<div style={{fontSize:'.72rem',opacity:.7,marginTop:3,fontWeight:700}}>"{ans.answer}"</div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button className="btn btn-ghost" style={{width:'100%',marginTop:10}} onClick={()=>goNext()}>No Points — Next Question →</button>
+                </div>
               </div>
-              <button className="btn btn-ghost" style={{width:'100%',marginTop:10}} onClick={()=>goNext()}>No Points — Next Question →</button>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div></div>
     );
@@ -1001,6 +1066,12 @@ function PlayerApp({onExit}) {
   };
 
   const submitAnswer = async (ans) => {
+    await db.ref(`games/${roomCode}/currentQ/teamAnswers/${myTeamCode}`).set({
+      answer: ans,
+      teamName: myTeam?.name || myTeamCode,
+      color: myTeam?.color || '#888',
+      submittedAt: Date.now()
+    });
     await db.ref(`games/${roomCode}/currentQ/submittedAnswer`).set(ans);
     setSubmitted(true);
   };
