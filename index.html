@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>Trivia Night 🎉</title>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -17,79 +19,95 @@ body{background:#07071C}
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState } = React;
+const { useState, useEffect, useRef } = React;
 
+// ── FIREBASE ──────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyA0fd5g08KALizxq8FPBTRfdCZxq0hBUgw",
+  authDomain: "trivia-game-2c5a5.firebaseapp.com",
+  databaseURL: "https://trivia-game-2c5a5-default-rtdb.firebaseio.com",
+  projectId: "trivia-game-2c5a5",
+  storageBucket: "trivia-game-2c5a5.firebasestorage.app",
+  messagingSenderId: "198133555093",
+  appId: "1:198133555093:web:1fa1ba194fab7d4da6e09c"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────────
 const TEAM_COLORS = ["#FF3B6B","#FF9F0A","#32D74B","#0A84FF"];
 const LETTERS = ["A","B","C","D"];
-const TYPE_COLORS = { multiple:"#0A84FF", text:"#32D74B", buzzer:"#FF3B6B" };
-const TYPE_LABELS = { multiple:"Multiple Choice", text:"Text Answer", buzzer:"Buzzer Round" };
+const TC = { multiple:"#0A84FF", text:"#32D74B", buzzer:"#FF3B6B" };
+const TL = { multiple:"Multiple Choice", text:"Text Answer", buzzer:"Buzzer Round" };
 
-const QUESTION_BANK = {
+const QB = {
   "🎬 Pop Culture": [
-    { type:"multiple", question:"Which movie won Best Picture at the 2020 Oscars?", options:["1917","Joker","Parasite","The Irishman"], answer:"Parasite", points:10 },
-    { type:"multiple", question:"Who plays Iron Man in the Marvel Cinematic Universe?", options:["Chris Evans","Robert Downey Jr.","Chris Hemsworth","Mark Ruffalo"], answer:"Robert Downey Jr.", points:10 },
-    { type:"text", question:"What Netflix show features kids battling monsters in a place called the Upside Down?", answer:"Stranger Things", points:10 },
-    { type:"multiple", question:"Which artist headlined the 2023 Super Bowl halftime show?", options:["Jay-Z","Drake","Rihanna","Beyoncé"], answer:"Rihanna", points:10 },
-    { type:"buzzer", question:"BUZZER: Name 3 Disney animated films from the 90s! First team to buzz and get all 3 wins!", answer:"Lion King, Aladdin, Mulan, Pocahontas, etc.", points:20 },
+    {type:"multiple",question:"Which movie won Best Picture at the 2020 Oscars?",options:["1917","Joker","Parasite","The Irishman"],answer:"Parasite",points:10},
+    {type:"multiple",question:"Who plays Iron Man in the Marvel Cinematic Universe?",options:["Chris Evans","Robert Downey Jr.","Chris Hemsworth","Mark Ruffalo"],answer:"Robert Downey Jr.",points:10},
+    {type:"text",question:"What Netflix show features kids battling monsters in the Upside Down?",answer:"Stranger Things",points:10},
+    {type:"multiple",question:"Which artist headlined the 2023 Super Bowl halftime show?",options:["Jay-Z","Drake","Rihanna","Beyoncé"],answer:"Rihanna",points:10},
+    {type:"buzzer",question:"BUZZER: Name 3 Disney animated films from the 90s! First team wins!",answer:"Lion King, Aladdin, Mulan, Pocahontas, etc.",points:20},
   ],
   "🔬 Science & Nature": [
-    { type:"multiple", question:"What is the chemical symbol for Gold?", options:["Go","Gd","Au","Ag"], answer:"Au", points:10 },
-    { type:"multiple", question:"How many bones are in the adult human body?", options:["186","206","226","246"], answer:"206", points:10 },
-    { type:"text", question:"What gas do plants absorb from the atmosphere during photosynthesis?", answer:"Carbon dioxide (CO2)", points:10 },
-    { type:"multiple", question:"What planet is known as the Red Planet?", options:["Venus","Jupiter","Saturn","Mars"], answer:"Mars", points:10 },
-    { type:"buzzer", question:"BUZZER: First team to name 5 elements from the periodic table wins!", answer:"Any 5 valid elements", points:20 },
+    {type:"multiple",question:"What is the chemical symbol for Gold?",options:["Go","Gd","Au","Ag"],answer:"Au",points:10},
+    {type:"multiple",question:"How many bones are in the adult human body?",options:["186","206","226","246"],answer:"206",points:10},
+    {type:"text",question:"What gas do plants absorb during photosynthesis?",answer:"Carbon dioxide (CO2)",points:10},
+    {type:"multiple",question:"What planet is known as the Red Planet?",options:["Venus","Jupiter","Saturn","Mars"],answer:"Mars",points:10},
+    {type:"buzzer",question:"BUZZER: First team to name 5 elements from the periodic table wins!",answer:"Any 5 valid elements",points:20},
   ],
   "📚 History": [
-    { type:"multiple", question:"In what year did World War II end?", options:["1943","1944","1945","1946"], answer:"1945", points:10 },
-    { type:"multiple", question:"Who was the first President of the United States?", options:["John Adams","Thomas Jefferson","Benjamin Franklin","George Washington"], answer:"George Washington", points:10 },
-    { type:"text", question:"What ship sank in 1912 after hitting an iceberg?", answer:"Titanic", points:10 },
-    { type:"multiple", question:"The Berlin Wall fell in which year?", options:["1987","1988","1989","1990"], answer:"1989", points:10 },
-    { type:"buzzer", question:"BUZZER: Name 3 ancient civilizations! First team to buzz in and name all 3 wins!", answer:"Roman, Egyptian, Greek, Mayan, Persian, etc.", points:20 },
+    {type:"multiple",question:"In what year did World War II end?",options:["1943","1944","1945","1946"],answer:"1945",points:10},
+    {type:"multiple",question:"Who was the first President of the United States?",options:["John Adams","Thomas Jefferson","Benjamin Franklin","George Washington"],answer:"George Washington",points:10},
+    {type:"text",question:"What ship sank in 1912 after hitting an iceberg?",answer:"Titanic",points:10},
+    {type:"multiple",question:"The Berlin Wall fell in which year?",options:["1987","1988","1989","1990"],answer:"1989",points:10},
+    {type:"buzzer",question:"BUZZER: Name 3 ancient civilizations! First team to buzz wins!",answer:"Roman, Egyptian, Greek, Mayan, Persian, etc.",points:20},
   ],
   "⚽ Sports": [
-    { type:"multiple", question:"How many players are on a soccer team on the field?", options:["9","10","11","12"], answer:"11", points:10 },
-    { type:"multiple", question:"In which country was the 2022 FIFA World Cup held?", options:["Russia","Brazil","Qatar","UAE"], answer:"Qatar", points:10 },
-    { type:"text", question:"What sport is played at the Wimbledon Championships?", answer:"Tennis", points:10 },
-    { type:"multiple", question:"How many rings are on the Olympic flag?", options:["4","5","6","7"], answer:"5", points:10 },
-    { type:"buzzer", question:"BUZZER: Name 5 Summer Olympic sports! First team wins!", answer:"Any valid Olympic sports", points:20 },
+    {type:"multiple",question:"How many players are on a soccer team on the field?",options:["9","10","11","12"],answer:"11",points:10},
+    {type:"multiple",question:"In which country was the 2022 FIFA World Cup held?",options:["Russia","Brazil","Qatar","UAE"],answer:"Qatar",points:10},
+    {type:"text",question:"What sport is played at Wimbledon?",answer:"Tennis",points:10},
+    {type:"multiple",question:"How many rings are on the Olympic flag?",options:["4","5","6","7"],answer:"5",points:10},
+    {type:"buzzer",question:"BUZZER: Name 5 Summer Olympic sports! First team wins!",answer:"Any valid Olympic sports",points:20},
   ],
   "🎵 Music": [
-    { type:"multiple", question:"Which artist released the album 'Thriller'?", options:["Prince","Michael Jackson","Madonna","Whitney Houston"], answer:"Michael Jackson", points:10 },
-    { type:"multiple", question:"How many strings does a standard acoustic guitar have?", options:["4","5","6","7"], answer:"6", points:10 },
-    { type:"text", question:"What iconic band is Freddie Mercury associated with?", answer:"Queen", points:10 },
-    { type:"multiple", question:"Which country does the band BTS originate from?", options:["Japan","China","South Korea","Thailand"], answer:"South Korea", points:10 },
-    { type:"buzzer", question:"BUZZER: Hum a famous tune — opposing team guesses the song! Host picks the best.", answer:"Host judges", points:20 },
+    {type:"multiple",question:"Which artist released the album 'Thriller'?",options:["Prince","Michael Jackson","Madonna","Whitney Houston"],answer:"Michael Jackson",points:10},
+    {type:"multiple",question:"How many strings does a standard acoustic guitar have?",options:["4","5","6","7"],answer:"6",points:10},
+    {type:"text",question:"What iconic band is Freddie Mercury associated with?",answer:"Queen",points:10},
+    {type:"multiple",question:"Which country does BTS originate from?",options:["Japan","China","South Korea","Thailand"],answer:"South Korea",points:10},
+    {type:"buzzer",question:"BUZZER: Hum a famous tune — opposing team guesses! Host picks the best.",answer:"Host judges",points:20},
   ],
   "🌍 Geography": [
-    { type:"multiple", question:"What is the capital city of Australia?", options:["Sydney","Melbourne","Brisbane","Canberra"], answer:"Canberra", points:10 },
-    { type:"multiple", question:"Which is the longest river in the world?", options:["Amazon","Congo","Nile","Yangtze"], answer:"Nile", points:10 },
-    { type:"text", question:"What is the smallest country in the world by area?", answer:"Vatican City", points:10 },
-    { type:"multiple", question:"Which is the largest ocean?", options:["Atlantic","Indian","Arctic","Pacific"], answer:"Pacific", points:10 },
-    { type:"buzzer", question:"BUZZER: First team to name 5 countries in South America wins!", answer:"Brazil, Argentina, Colombia, Chile, Peru, etc.", points:20 },
+    {type:"multiple",question:"What is the capital city of Australia?",options:["Sydney","Melbourne","Brisbane","Canberra"],answer:"Canberra",points:10},
+    {type:"multiple",question:"Which is the longest river in the world?",options:["Amazon","Congo","Nile","Yangtze"],answer:"Nile",points:10},
+    {type:"text",question:"What is the smallest country in the world by area?",answer:"Vatican City",points:10},
+    {type:"multiple",question:"Which is the largest ocean?",options:["Atlantic","Indian","Arctic","Pacific"],answer:"Pacific",points:10},
+    {type:"buzzer",question:"BUZZER: First team to name 5 countries in South America wins!",answer:"Brazil, Argentina, Colombia, Chile, Peru, etc.",points:20},
   ],
 };
 
-const DEFAULT_BONUSES = [
-  { id:0, emoji:"💃", title:"Dance Off!", description:"Each team performs a 30-second group dance. Host awards up to 30 bonus points based on energy, creativity, and teamwork!" },
-  { id:1, emoji:"🎯", title:"Dare Time!", description:"The team in last place picks a dare for the leading team to complete. Host awards 25 points for completing it." },
-  { id:2, emoji:"⚔️", title:"Head-to-Head!", description:"Top 2 teams go head-to-head! Both leaders answer a rapid question out loud — first correct answer wins 30 points!" },
-  { id:3, emoji:"🎤", title:"Lip Sync Battle!", description:"Each team performs a lip sync to a song the host chooses. Best performance wins 30 bonus points!" },
-  { id:4, emoji:"🎭", title:"Charades!", description:"One member from each team does charades simultaneously. Most correct guesses in 60 seconds wins 30 points." },
-  { id:5, emoji:"🎨", title:"Draw It!", description:"Team leaders draw a secret word given by the host — their team guesses. Best correct guess in 45 seconds wins 30 points!" },
-  { id:6, emoji:"⚡", title:"Lightning Round!", description:"Team leaders answer rapid-fire questions for 60 seconds. Each correct answer = 5 points for their team!" },
-  { id:7, emoji:"🤔", title:"Riddle Me This!", description:"Host reads a riddle aloud. First team to buzz in with the correct answer wins 25 bonus points!" },
+const DEF_BONUSES = [
+  {id:0,emoji:"💃",title:"Dance Off!",description:"Each team performs a 30-second group dance. Host awards up to 30 bonus points!"},
+  {id:1,emoji:"🎯",title:"Dare Time!",description:"Last-place team picks a dare for the leader. Host awards 25 points for completing it."},
+  {id:2,emoji:"⚔️",title:"Head-to-Head!",description:"Top 2 teams go head-to-head! First correct answer out loud wins 30 points!"},
+  {id:3,emoji:"🎤",title:"Lip Sync Battle!",description:"Each team performs a lip sync to a song the host picks. Best performance wins 30 points!"},
+  {id:4,emoji:"🎭",title:"Charades!",description:"One member from each team does charades simultaneously. Most correct guesses in 60s wins 30 pts."},
+  {id:5,emoji:"🎨",title:"Draw It!",description:"Team leaders draw a secret word — their team guesses. Best correct guess in 45s wins 30 points!"},
+  {id:6,emoji:"⚡",title:"Lightning Round!",description:"Leaders answer rapid-fire questions for 60 seconds. Each correct = 5 points!"},
+  {id:7,emoji:"🤔",title:"Riddle Me This!",description:"Host reads a riddle. First team to buzz with the correct answer wins 25 bonus points!"},
 ];
 
+// ── CSS ───────────────────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;700;800;900&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 .app{min-height:100vh;background:#07071C;background-image:radial-gradient(ellipse 55% 40% at 10% 10%,rgba(255,59,107,.1) 0%,transparent 60%),radial-gradient(ellipse 50% 45% at 90% 90%,rgba(10,132,255,.1) 0%,transparent 60%);font-family:'Nunito',system-ui,sans-serif;color:#fff;padding:20px;padding-bottom:48px}
-.center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:85vh;text-align:center}
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;text-align:center;padding:20px}
 .wrap{max-width:680px;margin:0 auto;padding-top:8px}
-.game-title{font-family:'Boogaloo',cursive;font-size:clamp(3.5rem,10vw,6.5rem);line-height:1;background:linear-gradient(135deg,#FFE600 0%,#FF9F0A 50%,#FF3B6B 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 40px rgba(255,230,0,.25));margin-bottom:6px}
+.pwrap{max-width:480px;margin:0 auto;padding-top:8px}
+.game-title{font-family:'Boogaloo',cursive;font-size:clamp(3rem,10vw,6rem);line-height:1;background:linear-gradient(135deg,#FFE600 0%,#FF9F0A 50%,#FF3B6B 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
 .screen-title{font-family:'Boogaloo',cursive;font-size:2rem;color:#FFE600}
 .screen-sub{color:rgba(255,255,255,.4);font-size:.85rem;margin-top:2px}
-.subtitle{font-size:1rem;color:rgba(255,255,255,.4);letter-spacing:.2em;text-transform:uppercase;margin-bottom:40px}
+.subtitle{font-size:.95rem;color:rgba(255,255,255,.4);letter-spacing:.15em;text-transform:uppercase;margin-bottom:32px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 28px;border-radius:50px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;text-transform:uppercase;letter-spacing:.05em;transition:all .18s ease}
 .btn:hover{transform:translateY(-2px)}
 .btn:active{transform:translateY(1px)}
@@ -100,12 +118,15 @@ const CSS = `
 .btn-ghost:hover{background:rgba(255,255,255,.12)}
 .btn-danger{background:rgba(255,59,107,.1);color:#FF3B6B;border:1.5px solid rgba(255,59,107,.28)}
 .btn-danger:hover{background:rgba(255,59,107,.18)}
+.btn-green{background:rgba(50,215,75,.15);color:#32D74B;border:1.5px solid rgba(50,215,75,.35)}
+.btn-green:hover{background:rgba(50,215,75,.25)}
 .btn-sm{padding:7px 16px;font-size:.78rem}
 .btn-full{width:100%;padding:16px;font-size:1.05rem}
 .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px;margin-bottom:14px}
 .inp{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.13);border-radius:12px;padding:11px 15px;color:#fff;font-family:'Nunito',sans-serif;font-size:.9rem;width:100%;outline:none;transition:border-color .2s}
 .inp:focus{border-color:#FFE600}
 .inp::placeholder{color:rgba(255,255,255,.28)}
+.inp-big{font-size:1.4rem;padding:14px 18px;border-radius:14px;text-align:center;letter-spacing:.15em;font-weight:900;text-transform:uppercase}
 select.inp option{background:#1a1a3a;color:#fff}
 .label{font-size:.73rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);margin-bottom:7px;display:block}
 .divider{height:1px;background:rgba(255,255,255,.07);margin:16px 0}
@@ -125,10 +146,16 @@ select.inp option{background:#1a1a3a;color:#fff}
 .opt.picked{background:rgba(255,230,0,.1);border-color:#FFE600}
 .opt.right{background:rgba(50,215,75,.18);border-color:#32D74B;cursor:default}
 .opt.wrong{background:rgba(255,59,107,.1);border-color:#FF3B6B;opacity:.5;cursor:default}
+.opt-player{cursor:default}
+.opt-player:hover{transform:none}
 .letter{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:900;flex-shrink:0}
-.buzz-btn{flex:1;min-height:72px;padding:16px;border-radius:16px;font-family:'Boogaloo',cursive;font-size:1.2rem;cursor:pointer;border:2.5px solid;transition:all .15s;text-align:center}
-.buzz-btn:hover{transform:scale(1.03)}
+.buzz-btn{width:100%;min-height:90px;padding:20px;border-radius:20px;font-family:'Boogaloo',cursive;font-size:1.6rem;cursor:pointer;border:3px solid;transition:all .15s;text-align:center;margin-bottom:10px}
+.buzz-btn:hover{transform:scale(1.02)}
 .buzz-btn:active{transform:scale(.97)}
+.buzz-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.host-buzz-btn{flex:1;min-height:72px;padding:16px;border-radius:16px;font-family:'Boogaloo',cursive;font-size:1.2rem;cursor:pointer;border:2.5px solid;transition:all .15s;text-align:center}
+.host-buzz-btn:hover{transform:scale(1.03)}
+.host-buzz-btn:active{transform:scale(.97)}
 .correct-box{padding:14px;border-radius:13px;background:rgba(50,215,75,.12);border:2px solid rgba(50,215,75,.28);margin-bottom:16px}
 .award-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
 @media(max-width:480px){.award-grid{grid-template-columns:1fr}}
@@ -148,7 +175,7 @@ select.inp option{background:#1a1a3a;color:#fff}
 .tab.on{background:rgba(255,230,0,.15);color:#FFE600}
 .tab:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.6)}
 .tab.on:hover{background:rgba(255,230,0,.15);color:#FFE600}
-.q-item{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:12px;border:1px solid rgba(255,255,255,.07);margin-bottom:7px;background:rgba(255,255,255,.02);transition:opacity .2s}
+.q-item{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:12px;border:1px solid rgba(255,255,255,.07);margin-bottom:7px;background:rgba(255,255,255,.02)}
 .q-item.off{opacity:.35}
 .toggle{width:38px;height:22px;border-radius:11px;border:none;cursor:pointer;position:relative;flex-shrink:0;margin-top:1px;transition:background .2s}
 .tgl-on{background:#32D74B}
@@ -162,126 +189,297 @@ select.inp option{background:#1a1a3a;color:#fff}
 .cat-header{background:none;border:none;cursor:pointer;width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;padding:0}
 .pause-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;padding:24px}
 .pause-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:32px 28px;max-width:420px;width:100%}
+.code-box{background:rgba(255,230,0,.08);border:2px solid rgba(255,230,0,.3);border-radius:16px;padding:20px;text-align:center;margin-bottom:14px}
+.code-big{font-family:'Boogaloo',cursive;font-size:3rem;color:#FFE600;letter-spacing:.15em}
+.player-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px 24px;width:100%;max-width:420px}
+.buzz-panel{background:rgba(255,59,107,.07);border:1.5px solid rgba(255,59,107,.2);border-radius:16px;padding:16px;margin-bottom:14px}
+.answer-panel{background:rgba(50,215,75,.07);border:1.5px solid rgba(50,215,75,.2);border-radius:16px;padding:16px;margin-bottom:14px}
+.player-score-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.waiting-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FFE600;margin:0 3px;animation:pulse 1.2s ease-in-out infinite}
+.waiting-dot:nth-child(2){animation-delay:.2s}
+.waiting-dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+.role-card{background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.1);border-radius:24px;padding:32px 28px;cursor:pointer;transition:all .2s;text-align:center;flex:1;min-width:200px;max-width:280px}
+.role-card:hover{transform:translateY(-4px);border-color:rgba(255,230,0,.4);background:rgba(255,230,0,.06)}
+.role-icon{font-size:3rem;margin-bottom:12px;display:block}
+.player-joined{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:11px;margin-bottom:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
 `;
 
-function TriviaGame() {
-  const [screen, setScreen] = useState("welcome");
-  const [configTab, setConfigTab] = useState("categories");
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function genCode(len) {
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:len},()=>c[Math.floor(Math.random()*c.length)]).join('');
+}
+
+function toArr(obj) {
+  if (!obj) return [];
+  if (Array.isArray(obj)) return obj;
+  return Object.keys(obj).sort((a,b)=>+a-+b).map(k=>obj[k]);
+}
+
+function toTeamsArr(obj) {
+  if (!obj) return [];
+  return Object.entries(obj).map(([code,t])=>({...t,code}));
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────
+function App() {
+  const [role, setRole] = useState(null);
+  const styleEl = useRef(null);
+
+  useEffect(()=>{
+    if (!styleEl.current) {
+      const el = document.createElement('style');
+      el.textContent = CSS;
+      document.head.appendChild(el);
+      styleEl.current = el;
+    }
+  },[]);
+
+  if (!role) return <WelcomeScreen onSelect={setRole}/>;
+  if (role==='host') return <HostApp onExit={()=>setRole(null)}/>;
+  return <PlayerApp onExit={()=>setRole(null)}/>;
+}
+
+// ── WELCOME SCREEN ────────────────────────────────────────────────────────
+function WelcomeScreen({onSelect}) {
+  return (
+    <div className="app center">
+      <h1 className="game-title">TRIVIA NIGHT</h1>
+      <p className="subtitle">The Ultimate Party Quiz Game</p>
+      <div style={{display:"flex",gap:20,flexWrap:"wrap",justifyContent:"center",marginTop:8}}>
+        <div className="role-card" onClick={()=>onSelect('host')}>
+          <span className="role-icon">🎮</span>
+          <div style={{fontFamily:"'Boogaloo',cursive",fontSize:"1.6rem",color:"#FFE600",marginBottom:8}}>I'm the Host</div>
+          <div style={{fontSize:".85rem",color:"rgba(255,255,255,.45)",lineHeight:1.5}}>Create a game, set up teams, control the questions and award points</div>
+        </div>
+        <div className="role-card" onClick={()=>onSelect('player')}>
+          <span className="role-icon">🙋</span>
+          <div style={{fontFamily:"'Boogaloo',cursive",fontSize:"1.6rem",color:"#0A84FF",marginBottom:8}}>I'm a Player</div>
+          <div style={{fontSize:".85rem",color:"rgba(255,255,255,.45)",lineHeight:1.5}}>Join a game with a room code, buzz in and answer questions with your team</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// HOST APP
+// ══════════════════════════════════════════════════════════════════════════
+function HostApp({onExit}) {
+  const [screen, setScreen] = useState('teams');
+  const [configTab, setConfigTab] = useState('categories');
   const [teams, setTeams] = useState([]);
-  const [selCats, setSelCats] = useState(Object.keys(QUESTION_BANK).slice(0,3));
+  const [selCats, setSelCats] = useState(Object.keys(QB).slice(0,3));
   const [disabledQs, setDisabledQs] = useState(new Set());
   const [customQs, setCustomQs] = useState([]);
   const [totalQCount, setTotalQCount] = useState(12);
   const [bonusFreq, setBonusFreq] = useState(3);
-  const [bonuses, setBonuses] = useState(DEFAULT_BONUSES.map(b=>({...b})));
+  const [bonuses, setBonuses] = useState(DEF_BONUSES.map(b=>({...b})));
   const [expandedCat, setExpandedCat] = useState(null);
-  const [tName, setTName] = useState(""); const [tLeader, setTLeader] = useState("");
-  const [tMembers, setTMembers] = useState(Array(7).fill(""));
-  const [showCqForm, setShowCqForm] = useState(false);
-  const [cqText, setCqText] = useState(""); const [cqType, setCqType] = useState("multiple");
-  const [cqOpts, setCqOpts] = useState(["","","",""]); const [cqAns, setCqAns] = useState("");
-  const [cqPts, setCqPts] = useState(10);
-  const [showBonusForm, setShowBonusForm] = useState(false);
-  const [cbTitle, setCbTitle] = useState(""); const [cbDesc, setCbDesc] = useState(""); const [cbEmoji, setCbEmoji] = useState("🎯");
-  const [questions, setQuestions] = useState([]);
-  const [qIdx, setQIdx] = useState(0);
-  const [phase, setPhase] = useState("question");
-  const [picked, setPicked] = useState(null);
-  const [textAns, setTextAns] = useState("");
-  const [buzzed, setBuzzed] = useState(null);
-  const [roundsPlayed, setRoundsPlayed] = useState(0);
-  const [bonus, setBonus] = useState(null);
-  const [paused, setPaused] = useState(false);
+  const [tName,setTName]=useState(''); const [tLeader,setTLeader]=useState('');
+  const [tMembers,setTMembers]=useState(Array(7).fill(''));
+  const [showCqForm,setShowCqForm]=useState(false);
+  const [cqText,setCqText]=useState(''); const [cqType,setCqType]=useState('multiple');
+  const [cqOpts,setCqOpts]=useState(['','','','']); const [cqAns,setCqAns]=useState('');
+  const [cqPts,setCqPts]=useState(10);
+  const [showBonusForm,setShowBonusForm]=useState(false);
+  const [cbTitle,setCbTitle]=useState(''); const [cbDesc,setCbDesc]=useState(''); const [cbEmoji,setCbEmoji]=useState('🎯');
+  const [roomCode,setRoomCode]=useState('');
+  const [gameState,setGameState]=useState(null);
+  const [paused,setPaused]=useState(false);
+  const listenerRef = useRef(null);
 
-  const toggleQ = key => setDisabledQs(p => { const n=new Set(p); n.has(key)?n.delete(key):n.add(key); return n; });
+  const toggleQ = key => setDisabledQs(p=>{const n=new Set(p);n.has(key)?n.delete(key):n.add(key);return n;});
 
-  const enabledCount = (() => {
+  const enabledCount = (()=>{
     let c=0;
-    selCats.forEach(cat=>(QUESTION_BANK[cat]||[]).forEach((_,i)=>{ if(!disabledQs.has(`${cat}__${i}`))c++; }));
-    customQs.forEach((_,i)=>{ if(!disabledQs.has(`custom__${i}`))c++; });
+    selCats.forEach(cat=>(QB[cat]||[]).forEach((_,i)=>{if(!disabledQs.has(`${cat}__${i}`))c++;}));
+    customQs.forEach((_,i)=>{if(!disabledQs.has(`custom__${i}`))c++;});
     return c;
   })();
+
+  const effectiveTotal = Math.min(totalQCount, enabledCount);
 
   const addTeam = () => {
     if(!tName.trim()||!tLeader.trim()||teams.length>=4) return;
     setTeams(p=>[...p,{id:Date.now(),name:tName.trim(),leader:tLeader.trim(),members:tMembers.filter(m=>m.trim()),score:0,color:TEAM_COLORS[p.length]}]);
-    setTName(""); setTLeader(""); setTMembers(Array(7).fill(""));
+    setTName(''); setTLeader(''); setTMembers(Array(7).fill(''));
   };
 
   const buildPool = () => {
     let pool=[];
-    selCats.forEach(cat=>(QUESTION_BANK[cat]||[]).forEach((q,i)=>{ if(!disabledQs.has(`${cat}__${i}`)) pool.push({...q,category:cat}); }));
-    customQs.forEach((q,i)=>{ if(!disabledQs.has(`custom__${i}`)) pool.push({...q}); });
+    selCats.forEach(cat=>(QB[cat]||[]).forEach((q,i)=>{if(!disabledQs.has(`${cat}__${i}`))pool.push({...q,category:cat});}));
+    customQs.forEach((q,i)=>{if(!disabledQs.has(`custom__${i}`))pool.push({...q});});
     return pool.sort(()=>Math.random()-.5).slice(0,Math.min(totalQCount,pool.length));
   };
 
-  const startGame = () => {
-    setQuestions(buildPool()); setQIdx(0); setRoundsPlayed(0);
-    setPicked(null); setTextAns(""); setBuzzed(null); setPhase("question"); setPaused(false);
-    setScreen("playing");
+  const launchGame = async () => {
+    const code = genCode(6);
+    const pool = buildPool();
+    const teamsObj = {};
+    teams.forEach((t,i)=>{
+      const tc = genCode(4);
+      teamsObj[tc] = {name:t.name,leader:t.leader,members:t.members,score:0,color:t.color,code:tc};
+    });
+
+    const gameData = {
+      status:'lobby',
+      teams: teamsObj,
+      questions: pool,
+      currentQ: {index:0,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:''},
+      bonusRound: null,
+      players: {},
+      bonusFreq,
+      roundsPlayed: 0,
+      bonuses: bonuses.slice(0,bonuses.length),
+      createdAt: Date.now()
+    };
+
+    try {
+      await db.ref(`games/${code}`).set(gameData);
+      setRoomCode(code);
+      // update teams with codes
+      const teamsWithCodes = Object.entries(teamsObj).map(([tc,t])=>({...t,id:tc}));
+      setTeams(teamsWithCodes);
+      setScreen('lobby');
+      // start listening
+      startListener(code);
+    } catch(e) {
+      alert('Error creating game: ' + e.message);
+    }
   };
 
-  const award = (tid,pts) => setTeams(p=>p.map(t=>t.id===tid?{...t,score:t.score+pts}:t));
-
-  const nextQ = () => {
-    const nr=roundsPlayed+1; setRoundsPlayed(nr);
-    setPicked(null); setTextAns(""); setBuzzed(null);
-    const nx=qIdx+1;
-    if(nx>=questions.length){setScreen("results");return;}
-    if(nr%bonusFreq===0&&bonuses.length>0){setBonus(bonuses[Math.floor(Math.random()*bonuses.length)]);setScreen("bonus");return;}
-    setQIdx(nx); setPhase("question");
+  const startListener = (code) => {
+    if (listenerRef.current) listenerRef.current.off();
+    const ref = db.ref(`games/${code}`);
+    ref.on('value', snap => {
+      if (snap.exists()) setGameState(snap.val());
+    });
+    listenerRef.current = ref;
   };
 
-  const afterBonus = () => {
-    const nx=qIdx+1;
-    if(nx>=questions.length){setScreen("results");return;}
-    setQIdx(nx); setPhase("question"); setScreen("playing");
+  useEffect(()=>{
+    return ()=>{ if(listenerRef.current) listenerRef.current.off(); };
+  },[]);
+
+  const startPlaying = async () => {
+    await db.ref(`games/${roomCode}/status`).set('playing');
+  };
+
+  const revealAnswer = async () => {
+    await db.ref(`games/${roomCode}/currentQ/phase`).set('reveal');
+  };
+
+  const awardAndNext = async (teamCode, pts) => {
+    const g = gameState;
+    if (!g) return;
+    const teamsArr = toTeamsArr(g.teams);
+    const team = teamsArr.find(t=>t.code===teamCode);
+    if (team) {
+      await db.ref(`games/${roomCode}/teams/${teamCode}/score`).transaction(s=>(s||0)+pts);
+    }
+    await goNext();
+  };
+
+  const goNext = async () => {
+    const g = gameState;
+    if (!g) return;
+    const qs = toArr(g.questions);
+    const nr = (g.roundsPlayed||0) + 1;
+    const nx = g.currentQ.index + 1;
+
+    if (nx >= qs.length) {
+      await db.ref(`games/${roomCode}/status`).set('results');
+      return;
+    }
+
+    if (nr % g.bonusFreq === 0 && bonuses.length > 0) {
+      const b = bonuses[Math.floor(Math.random()*bonuses.length)];
+      await db.ref(`games/${roomCode}`).update({
+        bonusRound: {emoji:b.emoji,title:b.title,description:b.description},
+        status: 'bonus',
+        roundsPlayed: nr
+      });
+      return;
+    }
+
+    await db.ref(`games/${roomCode}`).update({
+      currentQ: {index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:''},
+      roundsPlayed: nr,
+      status: 'playing'
+    });
+  };
+
+  const afterBonus = async () => {
+    const g = gameState;
+    if (!g) return;
+    const qs = toArr(g.questions);
+    const nx = g.currentQ.index + 1;
+    if (nx >= qs.length) {
+      await db.ref(`games/${roomCode}/status`).set('results');
+      return;
+    }
+    await db.ref(`games/${roomCode}`).update({
+      bonusRound: null,
+      status: 'playing',
+      currentQ: {index:nx,phase:'question',buzzedTeam:null,buzzedTeamName:null,submittedAnswer:''}
+    });
+  };
+
+  const awardBonusAndNext = async (teamCode) => {
+    await db.ref(`games/${roomCode}/teams/${teamCode}/score`).transaction(s=>(s||0)+25);
+    await afterBonus();
   };
 
   const addCustomQ = () => {
     if(!cqText.trim()||!cqAns.trim()) return;
-    setCustomQs(p=>[...p,{type:cqType,question:cqText.trim(),options:cqType==="multiple"?cqOpts.filter(o=>o.trim()):[],answer:cqAns.trim(),points:cqPts,category:"Custom"}]);
-    setCqText(""); setCqOpts(["","","",""]); setCqAns(""); setShowCqForm(false);
+    setCustomQs(p=>[...p,{type:cqType,question:cqText.trim(),options:cqType==='multiple'?cqOpts.filter(o=>o.trim()):[],answer:cqAns.trim(),points:cqPts,category:'Custom'}]);
+    setCqText(''); setCqOpts(['','','','']); setCqAns(''); setShowCqForm(false);
   };
 
   const addBonus = () => {
     if(!cbTitle.trim()||!cbDesc.trim()) return;
     setBonuses(p=>[...p,{id:Date.now(),emoji:cbEmoji,title:cbTitle.trim(),description:cbDesc.trim()}]);
-    setCbTitle(""); setCbDesc(""); setCbEmoji("🎯"); setShowBonusForm(false);
+    setCbTitle(''); setCbDesc(''); setCbEmoji('🎯'); setShowBonusForm(false);
   };
 
-  const q = questions[qIdx];
-  const sorted = [...teams].sort((a,b)=>b.score-a.score);
-  const effectiveTotal = Math.min(totalQCount, enabledCount);
+  const exitGame = async () => {
+    if (roomCode) await db.ref(`games/${roomCode}/status`).set('ended');
+    if (listenerRef.current) listenerRef.current.off();
+    onExit();
+  };
 
-  if(screen==="welcome") return (
-    <div className="app center">
-      <h1 className="game-title">TRIVIA NIGHT</h1>
-      <p className="subtitle">The Ultimate Party Quiz Game</p>
-      <button className="btn btn-yellow" style={{fontSize:"1.1rem",padding:"15px 44px"}} onClick={()=>setScreen("teams")}>Start New Game</button>
-      <div style={{marginTop:40,display:"flex",gap:14,flexWrap:"wrap",justifyContent:"center"}}>
-        {["Up to 4 Teams","6–8 Players Each","3 Question Types","Custom Questions & Bonuses","Play Local or Remote"].map(f=>(
-          <div key={f} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.09)",borderRadius:11,padding:"8px 14px",fontSize:".81rem",color:"rgba(255,255,255,.48)",fontWeight:700}}>{f}</div>
-        ))}
-      </div>
-    </div>
-  );
+  // Route by game status when connected
+  const status = gameState?.status;
+  if (screen==='lobby' && status==='playing') setScreen('playing');
+  if (screen==='playing' && status==='bonus') setScreen('bonus');
+  if (screen==='bonus' && status==='playing') setScreen('playing');
+  if ((screen==='playing'||screen==='bonus') && status==='results') setScreen('results');
 
-  if(screen==="teams") return (
+  const g = gameState;
+  const teamsArr = g ? toTeamsArr(g.teams) : teams;
+  const sortedTeams = [...teamsArr].sort((a,b)=>b.score-a.score);
+  const qs = g ? toArr(g.questions) : [];
+  const q = g && qs.length > 0 ? qs[g.currentQ?.index||0] : null;
+  const players = g ? Object.values(g.players||{}) : [];
+
+  // ── HOST: TEAMS SCREEN ─────────────────────────────────────────────────
+  if (screen==='teams') return (
     <div className="app"><div className="wrap">
       <div className="row" style={{marginBottom:22}}>
-        <button className="btn btn-ghost btn-sm" onClick={()=>setScreen("welcome")}>← Back</button>
-        <div><div className="screen-title">Team Setup</div><div className="screen-sub">Add 2–4 teams, each needs a name and a leader</div></div>
+        <button className="btn btn-ghost btn-sm" onClick={onExit}>← Exit</button>
+        <div><div className="screen-title">Team Setup</div><div className="screen-sub">Add 2–4 teams before setting up the game</div></div>
       </div>
       {teams.map((t,i)=>(
         <div key={t.id} className="team-row fade" style={{borderColor:t.color,background:`${t.color}10`}}>
           <div>
             <div className="row" style={{gap:8,marginBottom:4}}>
-              <div style={{width:10,height:10,borderRadius:"50%",background:t.color,flexShrink:0}}/>
+              <div style={{width:10,height:10,borderRadius:'50%',background:t.color,flexShrink:0}}/>
               <span style={{fontWeight:900}}>{t.name}</span>
               <span className="tag" style={{background:`${t.color}22`,color:t.color}}>Team {i+1}</span>
             </div>
-            <div style={{fontSize:".8rem",color:"rgba(255,255,255,.42)"}}>Leader: <strong style={{color:"rgba(255,255,255,.72)"}}>{t.leader}</strong>{t.members.length>0&&<span style={{marginLeft:7}}>· {t.members.join(", ")}</span>}</div>
+            <div style={{fontSize:'.8rem',color:'rgba(255,255,255,.42)'}}>Leader: <strong style={{color:'rgba(255,255,255,.72)'}}>{t.leader}</strong>{t.members?.length>0&&<span style={{marginLeft:7}}>· {t.members.join(', ')}</span>}</div>
           </div>
           <button className="btn btn-danger btn-sm" onClick={()=>setTeams(p=>p.filter(x=>x.id!==t.id))}>Remove</button>
         </div>
@@ -293,87 +491,84 @@ function TriviaGame() {
             <div><span className="label">Team Name *</span><input className="inp" placeholder="e.g. The Brain Squad" value={tName} onChange={e=>setTName(e.target.value)}/></div>
             <div><span className="label">Team Leader *</span><input className="inp" placeholder="Leader's name" value={tLeader} onChange={e=>setTLeader(e.target.value)}/></div>
           </div>
-          <span className="label">Members (optional, up to 7)</span>
+          <span className="label">Members (optional)</span>
           <div className="grid2">
             {tMembers.map((m,i)=><input key={i} className="inp" placeholder={`Member ${i+1}`} value={m} style={{marginBottom:8}} onChange={e=>{const u=[...tMembers];u[i]=e.target.value;setTMembers(u)}}/>)}
           </div>
-          <button className="btn btn-yellow" style={{marginTop:14,width:"100%"}} onClick={addTeam} disabled={!tName.trim()||!tLeader.trim()}>+ Add Team</button>
+          <button className="btn btn-yellow" style={{marginTop:14,width:'100%'}} onClick={addTeam} disabled={!tName.trim()||!tLeader.trim()}>+ Add Team</button>
         </div>
       )}
       {teams.length>=2
-        ?<button className="btn btn-yellow btn-full" onClick={()=>{setConfigTab("categories");setScreen("config")}}>Continue to Game Setup →</button>
-        :<p style={{textAlign:"center",color:"rgba(255,255,255,.25)",fontSize:".87rem",marginTop:8}}>Add at least 2 teams to continue</p>
+        ?<button className="btn btn-yellow btn-full" onClick={()=>{setConfigTab('categories');setScreen('config')}}>Continue to Game Setup →</button>
+        :<p style={{textAlign:'center',color:'rgba(255,255,255,.25)',fontSize:'.87rem',marginTop:8}}>Add at least 2 teams to continue</p>
       }
     </div></div>
   );
 
-  if(screen==="config") return (
+  // ── HOST: CONFIG SCREEN ────────────────────────────────────────────────
+  if (screen==='config') return (
     <div className="app"><div className="wrap">
       <div className="row" style={{marginBottom:18}}>
-        <button className="btn btn-ghost btn-sm" onClick={()=>setScreen("teams")}>← Back</button>
-        <div><div className="screen-title">Game Setup</div><div className="screen-sub">Customise every detail before you start</div></div>
+        <button className="btn btn-ghost btn-sm" onClick={()=>setScreen('teams')}>← Back</button>
+        <div><div className="screen-title">Game Setup</div><div className="screen-sub">Customise every detail before launching</div></div>
       </div>
       <div className="tab-bar">
-        {[["categories","Categories"],["questions","Questions"],["bonuses","Bonus Rounds"],["settings","Settings"]].map(([v,l])=>(
-          <button key={v} className={`tab ${configTab===v?"on":""}`} onClick={()=>setConfigTab(v)}>{l}</button>
+        {[['categories','Categories'],['questions','Questions'],['bonuses','Bonus Rounds'],['settings','Settings']].map(([v,l])=>(
+          <button key={v} className={`tab ${configTab===v?'on':''}`} onClick={()=>setConfigTab(v)}>{l}</button>
         ))}
       </div>
 
-      {configTab==="categories"&&(
+      {configTab==='categories'&&(
         <div className="fade">
           <div className="card">
-            <span className="label" style={{marginBottom:12,display:"block"}}>Select Categories</span>
-            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              {Object.keys(QUESTION_BANK).map(cat=>(
-                <button key={cat} className={`chip ${selCats.includes(cat)?"on":""}`}
+            <span className="label" style={{marginBottom:12,display:'block'}}>Select Categories</span>
+            <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+              {Object.keys(QB).map(cat=>(
+                <button key={cat} className={`chip ${selCats.includes(cat)?'on':''}`}
                   onClick={()=>{if(selCats.includes(cat)){if(selCats.length>1)setSelCats(p=>p.filter(c=>c!==cat))}else setSelCats(p=>[...p,cat])}}>
                   {cat}
                 </button>
               ))}
             </div>
-            <p style={{marginTop:12,fontSize:".8rem",color:"rgba(255,255,255,.3)"}}>{selCats.length} categor{selCats.length===1?"y":"ies"} selected · {enabledCount} questions available</p>
+            <p style={{marginTop:12,fontSize:'.8rem',color:'rgba(255,255,255,.3)'}}>{selCats.length} categor{selCats.length===1?'y':'ies'} selected · {enabledCount} questions available</p>
           </div>
           <div className="card">
-            <span className="label" style={{marginBottom:6,display:"block"}}>Number of Questions to Play</span>
+            <span className="label" style={{marginBottom:6,display:'block'}}>Number of Questions</span>
             <div className="row" style={{marginBottom:8}}>
               <input type="range" min={1} max={Math.max(enabledCount,1)} value={effectiveTotal} step={1} style={{flex:1}} onChange={e=>setTotalQCount(+e.target.value)}/>
-              <span style={{fontFamily:"'Boogaloo',cursive",fontSize:"1.8rem",color:"#FFE600",minWidth:44,textAlign:"right"}}>{effectiveTotal}</span>
+              <span style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.8rem',color:'#FFE600',minWidth:44,textAlign:'right'}}>{effectiveTotal}</span>
             </div>
-            <p style={{fontSize:".79rem",color:"rgba(255,255,255,.3)"}}>Drag to choose how many questions appear in your game (max {enabledCount} available)</p>
+            <p style={{fontSize:'.79rem',color:'rgba(255,255,255,.3)'}}>Drag to set how many questions appear (max {enabledCount} available)</p>
           </div>
         </div>
       )}
 
-      {configTab==="questions"&&(
+      {configTab==='questions'&&(
         <div className="fade">
-          <p style={{fontSize:".84rem",color:"rgba(255,255,255,.38)",marginBottom:14,lineHeight:1.6}}>Click a category to expand it. Toggle individual questions on or off — disabled questions won't appear in the game.</p>
+          <p style={{fontSize:'.84rem',color:'rgba(255,255,255,.38)',marginBottom:14,lineHeight:1.6}}>Click a category to expand it. Toggle questions on or off.</p>
           {selCats.map(cat=>{
-            const qs=QUESTION_BANK[cat]||[];
-            const activeCount=qs.filter((_,i)=>!disabledQs.has(`${cat}__${i}`)).length;
+            const qs2=QB[cat]||[];
+            const ac=qs2.filter((_,i)=>!disabledQs.has(`${cat}__${i}`)).length;
             return(
               <div className="card" key={cat} style={{marginBottom:12}}>
                 <button className="cat-header" onClick={()=>setExpandedCat(expandedCat===cat?null:cat)}>
-                  <div>
-                    <span style={{fontWeight:900,color:"#fff",fontSize:"1rem"}}>{cat}</span>
-                    <span style={{marginLeft:10,fontSize:".78rem",color:"rgba(255,255,255,.35)",fontWeight:700}}>{activeCount}/{qs.length} active</span>
-                  </div>
-                  <span style={{color:"rgba(255,255,255,.3)",fontSize:".9rem"}}>{expandedCat===cat?"▲":"▼"}</span>
+                  <div><span style={{fontWeight:900,color:'#fff',fontSize:'1rem'}}>{cat}</span><span style={{marginLeft:10,fontSize:'.78rem',color:'rgba(255,255,255,.35)',fontWeight:700}}>{ac}/{qs2.length} active</span></div>
+                  <span style={{color:'rgba(255,255,255,.3)',fontSize:'.9rem'}}>{expandedCat===cat?'▲':'▼'}</span>
                 </button>
                 {expandedCat===cat&&(
                   <div style={{marginTop:14}}>
-                    {qs.map((q,i)=>{
-                      const key=`${cat}__${i}`;
-                      const active=!disabledQs.has(key);
+                    {qs2.map((q2,i)=>{
+                      const key=`${cat}__${i}`;const active=!disabledQs.has(key);
                       return(
-                        <div key={i} className={`q-item ${active?"":"off"}`}>
-                          <button className={`toggle ${active?"tgl-on":"tgl-off"}`} onClick={()=>toggleQ(key)}/>
+                        <div key={i} className={`q-item ${active?'':'off'}`}>
+                          <button className={`toggle ${active?'tgl-on':'tgl-off'}`} onClick={()=>toggleQ(key)}/>
                           <div style={{flex:1}}>
-                            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:5}}>
-                              <span className="tag" style={{background:`${TYPE_COLORS[q.type]}18`,color:TYPE_COLORS[q.type],border:`1px solid ${TYPE_COLORS[q.type]}30`,fontSize:".7rem"}}>{q.type}</span>
-                              <span className="tag" style={{background:"rgba(255,230,0,.1)",color:"#FFE600",border:"1px solid rgba(255,230,0,.18)",fontSize:".7rem"}}>{q.points} pts</span>
+                            <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:5}}>
+                              <span className="tag" style={{background:`${TC[q2.type]}18`,color:TC[q2.type],border:`1px solid ${TC[q2.type]}30`,fontSize:'.7rem'}}>{q2.type}</span>
+                              <span className="tag" style={{background:'rgba(255,230,0,.1)',color:'#FFE600',border:'1px solid rgba(255,230,0,.18)',fontSize:'.7rem'}}>{q2.points} pts</span>
                             </div>
-                            <p style={{fontSize:".84rem",color:"rgba(255,255,255,.75)",fontWeight:700,lineHeight:1.4,marginBottom:3}}>{q.question}</p>
-                            <p style={{fontSize:".73rem",color:"rgba(255,255,255,.28)"}}>Answer: {q.answer}</p>
+                            <p style={{fontSize:'.84rem',color:'rgba(255,255,255,.75)',fontWeight:700,lineHeight:1.4,marginBottom:3}}>{q2.question}</p>
+                            <p style={{fontSize:'.73rem',color:'rgba(255,255,255,.28)'}}>Answer: {q2.answer}</p>
                           </div>
                         </div>
                       );
@@ -384,65 +579,53 @@ function TriviaGame() {
             );
           })}
           <div className="card">
-            <div className="row" style={{justifyContent:"space-between",marginBottom:10}}>
+            <div className="row" style={{justifyContent:'space-between',marginBottom:10}}>
               <span className="label" style={{marginBottom:0}}>Custom Questions ({customQs.length})</span>
-              <button className="btn btn-ghost btn-sm" onClick={()=>setShowCqForm(!showCqForm)}>{showCqForm?"Cancel":"+ Add Question"}</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>setShowCqForm(!showCqForm)}>{showCqForm?'Cancel':'+ Add'}</button>
             </div>
             {customQs.map((cq,i)=>(
               <div key={i} className="custom-q-row">
                 <div style={{flex:1,minWidth:0}}>
-                  <span className="tag" style={{background:`${TYPE_COLORS[cq.type]}18`,color:TYPE_COLORS[cq.type],border:`1px solid ${TYPE_COLORS[cq.type]}28`,marginRight:7,fontSize:".7rem"}}>{cq.type}</span>
-                  <span style={{fontSize:".84rem",color:"rgba(255,255,255,.7)",fontWeight:700}}>{cq.question.slice(0,60)}{cq.question.length>60&&"…"}</span>
+                  <span className="tag" style={{background:`${TC[cq.type]}18`,color:TC[cq.type],border:`1px solid ${TC[cq.type]}28`,marginRight:7,fontSize:'.7rem'}}>{cq.type}</span>
+                  <span style={{fontSize:'.84rem',color:'rgba(255,255,255,.7)',fontWeight:700}}>{cq.question.slice(0,60)}{cq.question.length>60&&'…'}</span>
                 </div>
                 <button className="btn btn-danger btn-sm" onClick={()=>setCustomQs(p=>p.filter((_,j)=>j!==i))}>✕</button>
               </div>
             ))}
             {showCqForm&&(
-              <div style={{background:"rgba(255,255,255,.04)",borderRadius:14,padding:16,marginTop:10}}>
-                <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}}>
-                  {["multiple","text","buzzer"].map(t=><button key={t} className={`chip ${cqType===t?"on":""}`} onClick={()=>setCqType(t)}>{TYPE_LABELS[t]}</button>)}
+              <div style={{background:'rgba(255,255,255,.04)',borderRadius:14,padding:16,marginTop:10}}>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+                  {['multiple','text','buzzer'].map(t=><button key={t} className={`chip ${cqType===t?'on':''}`} onClick={()=>setCqType(t)}>{TL[t]}</button>)}
                 </div>
                 <span className="label">Question *</span>
-                <textarea className="inp" style={{resize:"vertical",minHeight:68,marginBottom:12}} placeholder="Enter your question…" value={cqText} onChange={e=>setCqText(e.target.value)}/>
-                {cqType==="multiple"&&<>
-                  <span className="label">Answer Options</span>
-                  <div className="grid2" style={{marginBottom:12}}>
-                    {cqOpts.map((o,i)=><input key={i} className="inp" placeholder={`Option ${LETTERS[i]}`} value={o} style={{marginBottom:6}} onChange={e=>{const u=[...cqOpts];u[i]=e.target.value;setCqOpts(u)}}/>)}
-                  </div>
-                </>}
+                <textarea className="inp" style={{resize:'vertical',minHeight:68,marginBottom:12}} placeholder="Enter your question…" value={cqText} onChange={e=>setCqText(e.target.value)}/>
+                {cqType==='multiple'&&<><span className="label">Answer Options</span><div className="grid2" style={{marginBottom:12}}>{cqOpts.map((o,i)=><input key={i} className="inp" placeholder={`Option ${LETTERS[i]}`} value={o} style={{marginBottom:6}} onChange={e=>{const u=[...cqOpts];u[i]=e.target.value;setCqOpts(u)}}/>)}</div></>}
                 <div className="grid2" style={{marginBottom:12}}>
                   <div><span className="label">Correct Answer *</span><input className="inp" placeholder="Answer…" value={cqAns} onChange={e=>setCqAns(e.target.value)}/></div>
-                  <div><span className="label">Points</span>
-                    <select className="inp" value={cqPts} onChange={e=>setCqPts(+e.target.value)}>
-                      {[5,10,15,20,25,30].map(p=><option key={p} value={p}>{p} pts</option>)}
-                    </select>
-                  </div>
+                  <div><span className="label">Points</span><select className="inp" value={cqPts} onChange={e=>setCqPts(+e.target.value)}>{[5,10,15,20,25,30].map(p=><option key={p} value={p}>{p} pts</option>)}</select></div>
                 </div>
-                <button className="btn btn-yellow" style={{width:"100%"}} onClick={addCustomQ} disabled={!cqText.trim()||!cqAns.trim()}>Save Question</button>
+                <button className="btn btn-yellow" style={{width:'100%'}} onClick={addCustomQ} disabled={!cqText.trim()||!cqAns.trim()}>Save Question</button>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {configTab==="bonuses"&&(
+      {configTab==='bonuses'&&(
         <div className="fade">
-          <p style={{fontSize:".84rem",color:"rgba(255,255,255,.38)",marginBottom:14,lineHeight:1.6}}>Remove any bonus rounds you don't want, or add your own custom activities.</p>
+          <p style={{fontSize:'.84rem',color:'rgba(255,255,255,.38)',marginBottom:14,lineHeight:1.6}}>Remove bonus rounds or add your own custom activities.</p>
           {bonuses.map((b,i)=>(
             <div key={b.id} className="bonus-item">
-              <span style={{fontSize:"1.6rem",flexShrink:0}}>{b.emoji}</span>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:900,fontSize:".92rem",marginBottom:3}}>{b.title}</div>
-                <div style={{fontSize:".77rem",color:"rgba(255,255,255,.36)",lineHeight:1.4}}>{b.description.slice(0,85)}{b.description.length>85&&"…"}</div>
-              </div>
+              <span style={{fontSize:'1.6rem',flexShrink:0}}>{b.emoji}</span>
+              <div style={{flex:1}}><div style={{fontWeight:900,fontSize:'.92rem',marginBottom:3}}>{b.title}</div><div style={{fontSize:'.77rem',color:'rgba(255,255,255,.36)',lineHeight:1.4}}>{b.description.slice(0,80)}{b.description.length>80&&'…'}</div></div>
               <button className="btn btn-danger btn-sm" onClick={()=>setBonuses(p=>p.filter((_,j)=>j!==i))}>Remove</button>
             </div>
           ))}
-          {bonuses.length===0&&<div style={{textAlign:"center",color:"rgba(255,255,255,.22)",padding:"18px 0",fontSize:".85rem"}}>No bonus rounds — add some below</div>}
+          {bonuses.length===0&&<div style={{textAlign:'center',color:'rgba(255,255,255,.22)',padding:'18px 0',fontSize:'.85rem'}}>No bonus rounds</div>}
           <div className="card" style={{marginTop:8}}>
-            <div className="row" style={{justifyContent:"space-between",marginBottom:10}}>
+            <div className="row" style={{justifyContent:'space-between',marginBottom:10}}>
               <span className="label" style={{marginBottom:0}}>Add Custom Bonus Round</span>
-              <button className="btn btn-ghost btn-sm" onClick={()=>setShowBonusForm(!showBonusForm)}>{showBonusForm?"Cancel":"+ Add"}</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>setShowBonusForm(!showBonusForm)}>{showBonusForm?'Cancel':'+ Add'}</button>
             </div>
             {showBonusForm&&(
               <div>
@@ -451,163 +634,227 @@ function TriviaGame() {
                   <div><span className="label">Title *</span><input className="inp" placeholder="e.g. Sing-Off!" value={cbTitle} onChange={e=>setCbTitle(e.target.value)}/></div>
                 </div>
                 <span className="label">Description *</span>
-                <textarea className="inp" style={{resize:"vertical",minHeight:72,marginBottom:12}} placeholder="Describe the activity and how points are awarded…" value={cbDesc} onChange={e=>setCbDesc(e.target.value)}/>
-                <button className="btn btn-yellow" style={{width:"100%"}} onClick={addBonus} disabled={!cbTitle.trim()||!cbDesc.trim()}>Save Bonus Round</button>
+                <textarea className="inp" style={{resize:'vertical',minHeight:72,marginBottom:12}} placeholder="Describe the activity…" value={cbDesc} onChange={e=>setCbDesc(e.target.value)}/>
+                <button className="btn btn-yellow" style={{width:'100%'}} onClick={addBonus} disabled={!cbTitle.trim()||!cbDesc.trim()}>Save Bonus Round</button>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {configTab==="settings"&&(
+      {configTab==='settings'&&(
         <div className="fade">
           <div className="card">
-            <span className="label" style={{marginBottom:8,display:"block"}}>Bonus Round Frequency</span>
-            <p style={{fontSize:".82rem",color:"rgba(255,255,255,.35)",marginBottom:14}}>A bonus round will appear after this many questions.</p>
-            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              {[2,3,4,5,6].map(n=><button key={n} className={`chip ${bonusFreq===n?"on":""}`} onClick={()=>setBonusFreq(n)}>Every {n} questions</button>)}
+            <span className="label" style={{marginBottom:8,display:'block'}}>Bonus Round Frequency</span>
+            <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+              {[2,3,4,5,6].map(n=><button key={n} className={`chip ${bonusFreq===n?'on':''}`} onClick={()=>setBonusFreq(n)}>Every {n} questions</button>)}
             </div>
           </div>
           <div className="card">
-            <span className="label" style={{marginBottom:10,display:"block"}}>Teams ({teams.length})</span>
-            <div style={{display:"flex",gap:9,flexWrap:"wrap",marginBottom:12}}>
-              {teams.map(t=><div key={t.id} className="tag" style={{background:`${t.color}18`,color:t.color,border:`1px solid ${t.color}30`,padding:"6px 14px",fontSize:".85rem"}}>{t.name} · {t.leader}</div>)}
+            <span className="label" style={{marginBottom:10,display:'block'}}>Teams ({teams.length})</span>
+            <div style={{display:'flex',gap:9,flexWrap:'wrap',marginBottom:12}}>
+              {teams.map(t=><div key={t.id} className="tag" style={{background:`${t.color}18`,color:t.color,border:`1px solid ${t.color}30`,padding:'6px 14px',fontSize:'.85rem'}}>{t.name} · {t.leader}</div>)}
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={()=>setScreen("teams")}>Edit Teams</button>
-          </div>
-          <div className="card">
-            <span className="label" style={{marginBottom:10,display:"block"}}>Game Summary</span>
-            {[["Categories",`${selCats.length} selected`],["Questions",`${effectiveTotal} will be played`],["Bonus Rounds",`${bonuses.length} active, every ${bonusFreq} questions`],["Custom Questions",`${customQs.length} added`]].map(([k,v])=>(
-              <div key={k} style={{display:"flex",justifyContent:"space-between",fontSize:".87rem",padding:"8px 0",borderBottom:"1px solid rgba(255,255,255,.06)"}}>
-                <span style={{color:"rgba(255,255,255,.38)",fontWeight:700}}>{k}</span>
-                <span style={{color:"rgba(255,255,255,.75)",fontWeight:800}}>{v}</span>
-              </div>
-            ))}
+            <button className="btn btn-ghost btn-sm" onClick={()=>setScreen('teams')}>Edit Teams</button>
           </div>
         </div>
       )}
 
       <div style={{height:16}}/>
-      <button className="btn btn-yellow btn-full" onClick={startGame} disabled={enabledCount===0||teams.length<2}>
-        {enabledCount===0?"No questions enabled":"Start Game!"}
+      <button className="btn btn-yellow btn-full" onClick={launchGame} disabled={enabledCount===0||teams.length<2}>
+        {enabledCount===0?'No questions enabled':'🚀 Launch Game & Get Room Code'}
       </button>
     </div></div>
   );
 
-  if(screen==="playing"){
-    if(paused) return(
+  // ── HOST: LOBBY ────────────────────────────────────────────────────────
+  if (screen==='lobby') return (
+    <div className="app"><div className="wrap">
+      <div style={{marginBottom:22}}>
+        <div className="screen-title">Game Lobby</div>
+        <div className="screen-sub">Share these codes with your players</div>
+      </div>
+
+      <div className="code-box" style={{marginBottom:14}}>
+        <div style={{fontSize:'.78rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,230,0,.6)',marginBottom:6}}>Room Code — Share this with everyone</div>
+        <div className="code-big">{roomCode}</div>
+        <div style={{fontSize:'.8rem',color:'rgba(255,255,255,.35)',marginTop:6}}>Players go to this website and enter this code</div>
+      </div>
+
+      <div className="card" style={{marginBottom:14}}>
+        <span className="label" style={{marginBottom:12,display:'block'}}>Team Codes — Each team leader shares with their team</span>
+        {teamsArr.map(t=>(
+          <div key={t.code} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',borderRadius:13,background:`${t.color}10`,border:`1.5px solid ${t.color}30`,marginBottom:8}}>
+            <div style={{width:10,height:10,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:900}}>{t.name}</div>
+              <div style={{fontSize:'.78rem',color:'rgba(255,255,255,.4)'}}>Leader: {t.leader}</div>
+            </div>
+            <div style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.6rem',color:t.color,letterSpacing:'.1em'}}>{t.code}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card" style={{marginBottom:18}}>
+        <span className="label" style={{marginBottom:10,display:'block'}}>Players Joined ({players.length})</span>
+        {players.length===0
+          ? <p style={{color:'rgba(255,255,255,.25)',fontSize:'.85rem'}}>Waiting for players to join<span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/></p>
+          : players.map((p,i)=>{
+              const team = g?.teams?.[p.teamCode];
+              return(
+                <div key={i} className="player-joined">
+                  <div style={{width:8,height:8,borderRadius:'50%',background:team?.color||'#888',flexShrink:0}}/>
+                  <span style={{fontWeight:700,flex:1}}>{p.name}</span>
+                  <span style={{fontSize:'.8rem',color:'rgba(255,255,255,.38)',fontWeight:700}}>{team?.name||p.teamCode}</span>
+                </div>
+              );
+            })
+        }
+      </div>
+
+      <button className="btn btn-yellow btn-full" onClick={startPlaying} disabled={players.length===0}>
+        {players.length===0?'Waiting for players…':'Start Game!'}
+      </button>
+      <button className="btn btn-ghost btn-full" style={{marginTop:10}} onClick={startPlaying}>
+        Start Without Players (Host-Only Mode)
+      </button>
+    </div></div>
+  );
+
+  // ── HOST: PLAYING ──────────────────────────────────────────────────────
+  if (screen==='playing') {
+    if (!g || !q) return <div className="app center"><p>Loading…</p></div>;
+
+    if (paused) return (
       <div className="app">
         <div className="pause-wrap">
           <div className="pause-card fade">
-            <div style={{fontSize:"2.5rem",marginBottom:8}}>⏸</div>
-            <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:"1.8rem",color:"#FFE600",marginBottom:4}}>Game Paused</h2>
-            <p style={{fontSize:".82rem",color:"rgba(255,255,255,.35)",marginBottom:22}}>Question {qIdx+1} of {questions.length}</p>
+            <div style={{fontSize:'2.5rem',marginBottom:8}}>⏸</div>
+            <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.8rem',color:'#FFE600',marginBottom:4}}>Game Paused</h2>
+            <p style={{fontSize:'.82rem',color:'rgba(255,255,255,.35)',marginBottom:22}}>Q {(g.currentQ?.index||0)+1} of {qs.length}</p>
             <div className="divider" style={{marginBottom:18}}/>
-            <span className="label" style={{marginBottom:10,display:"block",textAlign:"left"}}>Current Standings</span>
-            {sorted.map((t,i)=>(
-              <div key={t.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:11,background:`${t.color}12`,border:`1px solid ${t.color}25`,marginBottom:7}}>
-                <span style={{fontSize:".78rem",color:"rgba(255,255,255,.32)",fontWeight:800,width:18}}>#{i+1}</span>
-                <span style={{flex:1,fontWeight:800,color:"rgba(255,255,255,.82)"}}>{t.name}</span>
-                <span style={{fontFamily:"'Boogaloo',cursive",fontSize:"1.4rem",color:t.color}}>{t.score}</span>
+            <span className="label" style={{marginBottom:10,display:'block',textAlign:'left'}}>Standings</span>
+            {sortedTeams.map((t,i)=>(
+              <div key={t.code} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:11,background:`${t.color}12`,border:`1px solid ${t.color}25`,marginBottom:7}}>
+                <span style={{fontSize:'.78rem',color:'rgba(255,255,255,.32)',fontWeight:800,width:18}}>#{i+1}</span>
+                <span style={{flex:1,fontWeight:800}}>{t.name}</span>
+                <span style={{fontFamily:"'Boogaloo',cursive",fontSize:'1.4rem',color:t.color}}>{t.score}</span>
               </div>
             ))}
-            <div className="divider" style={{margin:"20px 0"}}/>
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              <button className="btn btn-yellow btn-full" onClick={()=>setPaused(false)}>▶ Resume Game</button>
-              <button className="btn btn-ghost btn-full" onClick={()=>{setPaused(false);setConfigTab("settings");setScreen("config")}}>⚙ Back to Settings</button>
-              <button className="btn btn-danger btn-full" onClick={()=>{setTeams(p=>p.map(t=>({...t,score:0})));setPaused(false);setScreen("welcome")}}>✕ Exit to Main Menu</button>
+            <div className="divider" style={{margin:'20px 0'}}/>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              <button className="btn btn-yellow btn-full" onClick={()=>setPaused(false)}>▶ Resume</button>
+              <button className="btn btn-danger btn-full" onClick={exitGame}>✕ End Game</button>
             </div>
           </div>
         </div>
       </div>
     );
 
-    if(!q) return null;
-    const prog=(qIdx/Math.max(questions.length,1))*100;
-    return(
+    const prog = ((g.currentQ?.index||0)/Math.max(qs.length,1))*100;
+    const currentQ = g.currentQ || {};
+    const buzzedTeamData = currentQ.buzzedTeam ? g.teams?.[currentQ.buzzedTeam] : null;
+
+    return (
       <div className="app"><div className="wrap">
-        <div className="row" style={{justifyContent:"space-between",marginBottom:12}}>
-          <div style={{display:"flex",gap:7,flexWrap:"wrap",flex:1}}>
-            {teams.map(t=>(
-              <div key={t.id} className="score-badge" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`}}>
-                <span style={{fontSize:".7rem",opacity:.75}}>{t.name}</span><strong>{t.score}</strong>
+        <div className="row" style={{justifyContent:'space-between',marginBottom:12}}>
+          <div style={{display:'flex',gap:7,flexWrap:'wrap',flex:1}}>
+            {teamsArr.map(t=>(
+              <div key={t.code} className="score-badge" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`}}>
+                <span style={{fontSize:'.7rem',opacity:.75}}>{t.name}</span><strong>{t.score||0}</strong>
               </div>
             ))}
           </div>
           <div className="row" style={{gap:8,flexShrink:0}}>
-            <span style={{fontSize:".78rem",color:"rgba(255,255,255,.3)"}}>Q {qIdx+1}/{questions.length}</span>
-            <button className="btn btn-ghost btn-sm" onClick={()=>setPaused(true)}>⏸ Menu</button>
+            <span style={{fontSize:'.78rem',color:'rgba(255,255,255,.3)'}}>Q {(g.currentQ?.index||0)+1}/{qs.length}</span>
+            <button className="btn btn-ghost btn-sm" onClick={()=>setPaused(true)}>⏸</button>
           </div>
         </div>
         <div className="prog-bar"><div className="prog-fill" style={{width:`${prog}%`}}/></div>
+
+        {/* Buzz panel */}
+        {currentQ.phase==='question' && q.type!=='text' && (
+          <div className="buzz-panel">
+            <div style={{fontSize:'.72rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,59,107,.7)',marginBottom:8}}>
+              {buzzedTeamData ? '🔔 Buzzed In!' : '🔇 Waiting for buzz…'}
+            </div>
+            {buzzedTeamData ? (
+              <div>
+                <div style={{fontWeight:900,fontSize:'1.05rem',color:buzzedTeamData.color,marginBottom:6}}>{buzzedTeamData.name} buzzed in!</div>
+                {currentQ.submittedAnswer && (
+                  <div style={{background:'rgba(255,255,255,.07)',borderRadius:10,padding:'10px 14px',fontSize:'.92rem',fontWeight:700,color:'rgba(255,255,255,.8)'}}>
+                    Answer: <span style={{color:'#FFE600'}}>{currentQ.submittedAnswer}</span>
+                  </div>
+                )}
+                {!currentQ.submittedAnswer && <p style={{fontSize:'.82rem',color:'rgba(255,255,255,.4)'}}>Waiting for their answer…</p>}
+              </div>
+            ) : (
+              <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+                {teamsArr.map(t=>(
+                  <span key={t.code} style={{fontSize:'.82rem',color:'rgba(255,255,255,.35)',fontWeight:700,padding:'4px 12px',borderRadius:50,border:'1px solid rgba(255,255,255,.1)'}}>
+                    {t.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="card">
-          <div className="row" style={{justifyContent:"space-between",marginBottom:14}}>
-            <span className="qtype-badge" style={{background:`${TYPE_COLORS[q.type]}15`,color:TYPE_COLORS[q.type],borderColor:`${TYPE_COLORS[q.type]}35`}}>{TYPE_LABELS[q.type]}</span>
+          <div className="row" style={{justifyContent:'space-between',marginBottom:14}}>
+            <span className="qtype-badge" style={{background:`${TC[q.type]}15`,color:TC[q.type],borderColor:`${TC[q.type]}35`}}>{TL[q.type]}</span>
             <div className="row" style={{gap:8}}>
-              <span style={{fontSize:".76rem",color:"rgba(255,255,255,.28)"}}>{q.category}</span>
-              <span className="tag" style={{background:"rgba(255,230,0,.1)",color:"#FFE600",border:"1px solid rgba(255,230,0,.2)"}}>{q.points} pts</span>
+              <span style={{fontSize:'.76rem',color:'rgba(255,255,255,.28)'}}>{q.category}</span>
+              <span className="tag" style={{background:'rgba(255,230,0,.1)',color:'#FFE600',border:'1px solid rgba(255,230,0,.2)'}}>{q.points} pts</span>
             </div>
           </div>
-          <div style={{fontSize:"clamp(1rem,3vw,1.25rem)",fontWeight:900,lineHeight:1.45,marginBottom:22}}>{q.question}</div>
-          {phase==="question"&&(
+          <div style={{fontSize:'clamp(1rem,3vw,1.25rem)',fontWeight:900,lineHeight:1.45,marginBottom:22}}>{q.question}</div>
+
+          {currentQ.phase==='question'&&(
             <>
-              {q.type==="multiple"&&q.options&&q.options.map((opt,i)=>(
-                <button key={i} className={`opt ${picked===opt?"picked":""}`} onClick={()=>setPicked(opt)}>
-                  <span className="letter">{LETTERS[i]}</span>{opt}
-                </button>
+              {q.type==='multiple'&&q.options&&q.options.map((opt,i)=>(
+                <div key={i} className="opt" style={{cursor:'default'}}><span className="letter">{LETTERS[i]}</span>{opt}</div>
               ))}
-              {q.type==="text"&&<input className="inp" style={{fontSize:"1rem",padding:"13px 16px",marginBottom:14}} placeholder="Team leader types the answer here…" value={textAns} onChange={e=>setTextAns(e.target.value)}/>}
-              {q.type==="buzzer"&&(
-                <>
-                  <p style={{color:"rgba(255,255,255,.4)",marginBottom:14,fontSize:".86rem"}}>Team leaders — first to buzz in gets to answer out loud!</p>
-                  <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:14}}>
-                    {teams.map(t=>(
-                      <button key={t.id} className="buzz-btn"
-                        style={{borderColor:t.color,background:`${t.color}14`,color:t.color,opacity:buzzed&&buzzed!==t.id?.25:1}}
-                        onClick={()=>!buzzed&&setBuzzed(t.id)}>
-                        {buzzed===t.id?"BUZZED IN!":t.name}
-                      </button>
-                    ))}
-                  </div>
-                  {buzzed&&<div style={{padding:12,borderRadius:12,background:"rgba(255,230,0,.08)",border:"1.5px solid rgba(255,230,0,.2)",color:"#FFE600",fontWeight:800,fontSize:".9rem",marginBottom:14}}>
-                    {teams.find(t=>t.id===buzzed)?.name} buzzed in! Their leader answers out loud.
-                  </div>}
-                </>
+              {q.type==='text'&&(
+                <div style={{padding:14,borderRadius:12,background:'rgba(255,255,255,.05)',marginBottom:14,fontSize:'.9rem',color:'rgba(255,255,255,.5)'}}>
+                  {currentQ.submittedAnswer ? <span style={{color:'#FFE600',fontWeight:800}}>{currentQ.submittedAnswer}</span> : 'Waiting for team leader to type answer…'}
+                </div>
               )}
               <div className="divider"/>
-              <div className="row" style={{justifyContent:"flex-end",gap:10}}>
-                <button className="btn btn-danger" onClick={()=>setPhase("reveal")}>Skip</button>
-                <button className="btn btn-yellow" onClick={()=>setPhase("reveal")}>Reveal Answer →</button>
+              <div className="row" style={{justifyContent:'flex-end',gap:10}}>
+                <button className="btn btn-danger" onClick={revealAnswer}>Skip</button>
+                <button className="btn btn-yellow" onClick={revealAnswer}>Reveal Answer →</button>
               </div>
             </>
           )}
-          {phase==="reveal"&&(
+
+          {currentQ.phase==='reveal'&&(
             <div className="fade">
               <div className="correct-box">
-                <div style={{fontSize:".7rem",fontWeight:800,textTransform:"uppercase",letterSpacing:".1em",color:"rgba(50,215,75,.6)",marginBottom:5}}>Correct Answer</div>
-                <div style={{fontSize:"1.15rem",fontWeight:900,color:"#32D74B"}}>{q.answer}</div>
+                <div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(50,215,75,.6)',marginBottom:5}}>Correct Answer</div>
+                <div style={{fontSize:'1.15rem',fontWeight:900,color:'#32D74B'}}>{q.answer}</div>
               </div>
-              {q.type==="multiple"&&q.options&&(
+              {q.type==='multiple'&&q.options&&(
                 <div style={{marginBottom:14}}>
                   {q.options.map((opt,i)=>(
-                    <div key={i} className={`opt ${opt===q.answer?"right":opt===picked&&opt!==q.answer?"wrong":""}`} style={{cursor:"default"}}>
+                    <div key={i} className={`opt ${opt===q.answer?'right':''}`} style={{cursor:'default'}}>
                       <span className="letter">{LETTERS[i]}</span>{opt}
-                      {opt===q.answer&&<span style={{marginLeft:"auto",color:"#32D74B",fontWeight:900}}>✓</span>}
+                      {opt===q.answer&&<span style={{marginLeft:'auto',color:'#32D74B',fontWeight:900}}>✓</span>}
                     </div>
                   ))}
                 </div>
               )}
               <div className="divider"/>
-              <span className="label" style={{marginBottom:8,display:"block"}}>Award {q.points} points to:</span>
+              <span className="label" style={{marginBottom:8,display:'block'}}>Award {q.points} points to:</span>
               <div className="award-grid">
-                {teams.map(t=>(
-                  <button key={t.id} className="award-btn" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`}}
-                    onClick={()=>{award(t.id,q.points);nextQ()}}>
+                {teamsArr.map(t=>(
+                  <button key={t.code} className="award-btn" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`}}
+                    onClick={()=>awardAndNext(t.code,q.points)}>
                     +{q.points} → {t.name}
                   </button>
                 ))}
               </div>
-              <button className="btn btn-ghost" style={{width:"100%",marginTop:10}} onClick={nextQ}>No Points — Next Question →</button>
+              <button className="btn btn-ghost" style={{width:'100%',marginTop:10}} onClick={()=>goNext()}>No Points — Next Question →</button>
             </div>
           )}
         </div>
@@ -615,65 +862,417 @@ function TriviaGame() {
     );
   }
 
-  if(screen==="bonus") return(
-    <div className="app center">
-      <div style={{marginBottom:14}}>
-        <span className="tag" style={{background:"rgba(255,159,10,.18)",color:"#FF9F0A",border:"1px solid rgba(255,159,10,.35)",fontSize:".85rem",padding:"6px 16px"}}>BONUS ROUND!</span>
-      </div>
-      <div className="bonus-wrap">
-        <span className="bonus-emoji">{bonus?.emoji}</span>
-        <h2 className="bonus-title">{bonus?.title}</h2>
-        <p className="bonus-desc">{bonus?.description}</p>
-        <span className="label" style={{marginBottom:10,display:"block",textAlign:"left"}}>Award bonus points:</span>
-        <div className="award-grid">
-          {teams.map(t=>(
-            <button key={t.id} className="award-btn" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`}}
-              onClick={()=>{award(t.id,25);afterBonus()}}>
-              +25 → {t.name}
-            </button>
-          ))}
+  // ── HOST: BONUS ────────────────────────────────────────────────────────
+  if (screen==='bonus') {
+    const br = g?.bonusRound;
+    return (
+      <div className="app center">
+        <div style={{marginBottom:14}}>
+          <span className="tag" style={{background:'rgba(255,159,10,.18)',color:'#FF9F0A',border:'1px solid rgba(255,159,10,.35)',fontSize:'.85rem',padding:'6px 16px'}}>BONUS ROUND!</span>
         </div>
-        <button className="btn btn-ghost" style={{width:"100%",marginTop:12}} onClick={afterBonus}>Skip Bonus → Continue</button>
+        <div className="bonus-wrap">
+          <span className="bonus-emoji">{br?.emoji||'🎯'}</span>
+          <h2 className="bonus-title">{br?.title}</h2>
+          <p className="bonus-desc">{br?.description}</p>
+          <span className="label" style={{marginBottom:10,display:'block',textAlign:'left'}}>Award 25 bonus points to:</span>
+          <div className="award-grid">
+            {teamsArr.map(t=>(
+              <button key={t.code} className="award-btn" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`}}
+                onClick={()=>awardBonusAndNext(t.code)}>
+                +25 → {t.name}
+              </button>
+            ))}
+          </div>
+          <button className="btn btn-ghost" style={{width:'100%',marginTop:12}} onClick={afterBonus}>Skip Bonus →</button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
-  if(screen==="results"){
-    const medals=["🥇","🥈","🥉","4️⃣"];
-    return(
+  // ── HOST: RESULTS ──────────────────────────────────────────────────────
+  if (screen==='results') {
+    const medals=['🥇','🥈','🥉','4️⃣'];
+    return (
       <div className="app">
-        <div style={{maxWidth:480,margin:"0 auto",paddingTop:20,textAlign:"center"}}>
-          <div style={{fontSize:"3rem",marginBottom:8}}>🎉</div>
-          <h1 className="game-title" style={{fontSize:"clamp(2.5rem,8vw,4rem)",marginBottom:4}}>Game Over!</h1>
+        <div style={{maxWidth:480,margin:'0 auto',paddingTop:20,textAlign:'center'}}>
+          <div style={{fontSize:'3rem',marginBottom:8}}>🎉</div>
+          <h1 className="game-title" style={{fontSize:'clamp(2.5rem,8vw,4rem)',marginBottom:4}}>Game Over!</h1>
           <p className="subtitle" style={{marginBottom:28}}>Final Leaderboard</p>
-          {sorted.map((t,i)=>(
-            <div key={t.id} className="lb-row fade" style={{border:i===0?`2px solid ${t.color}`:"1px solid rgba(255,255,255,.07)",background:i===0?`${t.color}10`:"rgba(255,255,255,.03)"}}>
-              <div className="lb-rank" style={{background:i===0?`${t.color}22`:"rgba(255,255,255,.07)",color:i===0?t.color:"rgba(255,255,255,.4)"}}>{i===0?"👑":medals[i]}</div>
-              <div style={{flex:1,textAlign:"left"}}>
+          {sortedTeams.map((t,i)=>(
+            <div key={t.code} className="lb-row fade" style={{border:i===0?`2px solid ${t.color}`:'1px solid rgba(255,255,255,.07)',background:i===0?`${t.color}10`:'rgba(255,255,255,.03)'}}>
+              <div className="lb-rank" style={{background:i===0?`${t.color}22`:'rgba(255,255,255,.07)',color:i===0?t.color:'rgba(255,255,255,.4)'}}>{i===0?'👑':medals[i]}</div>
+              <div style={{flex:1,textAlign:'left'}}>
                 <div style={{fontWeight:900}}>{t.name}</div>
-                <div style={{fontSize:".77rem",color:"rgba(255,255,255,.35)"}}>Leader: {t.leader}</div>
+                <div style={{fontSize:'.77rem',color:'rgba(255,255,255,.35)'}}>Leader: {t.leader}</div>
               </div>
-              <div style={{fontFamily:"'Boogaloo',cursive",fontSize:"2rem",color:i===0?t.color:"rgba(255,255,255,.6)"}}>{t.score}</div>
+              <div style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:i===0?t.color:'rgba(255,255,255,.6)'}}>{t.score||0}</div>
             </div>
           ))}
-          <div className="row" style={{justifyContent:"center",marginTop:28,flexWrap:"wrap",gap:12}}>
-            <button className="btn btn-yellow" onClick={()=>{setTeams(p=>p.map(t=>({...t,score:0})));startGame()}}>Play Again</button>
-            <button className="btn btn-ghost" onClick={()=>{setConfigTab("settings");setScreen("config")}}>Back to Setup</button>
-            <button className="btn btn-ghost" onClick={()=>{setTeams(p=>p.map(t=>({...t,score:0})));setScreen("welcome")}}>Main Menu</button>
+          <div className="row" style={{justifyContent:'center',marginTop:28,flexWrap:'wrap',gap:12}}>
+            <button className="btn btn-yellow" onClick={exitGame}>New Game</button>
           </div>
         </div>
       </div>
     );
   }
+
   return null;
 }
 
-const styleEl = document.createElement("style");
-styleEl.textContent = CSS;
-document.head.appendChild(styleEl);
+// ══════════════════════════════════════════════════════════════════════════
+// PLAYER APP
+// ══════════════════════════════════════════════════════════════════════════
+function PlayerApp({onExit}) {
+  const [screen, setScreen] = useState('join');
+  const [roomCode, setRoomCode] = useState('');
+  const [teamCode, setTeamCode] = useState('');
+  const [playerName, setPlayerName] = useState('');
+  const [playerId, setPlayerId] = useState('');
+  const [gameState, setGameState] = useState(null);
+  const [myTeamCode, setMyTeamCode] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const listenerRef = useRef(null);
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<TriviaGame />);
+  useEffect(()=>{
+    return ()=>{ if(listenerRef.current) listenerRef.current.off(); };
+  },[]);
+
+  const joinRoom = async () => {
+    setError(''); setLoading(true);
+    const code = roomCode.trim().toUpperCase();
+    try {
+      const snap = await db.ref(`games/${code}`).once('value');
+      if (!snap.exists()) { setError('Room not found. Check your code and try again.'); setLoading(false); return; }
+      const g = snap.val();
+      if (g.status==='results'||g.status==='ended') { setError('This game has already ended.'); setLoading(false); return; }
+      setRoomCode(code);
+      setScreen('teamcode');
+    } catch(e) { setError('Connection error. Please try again.'); }
+    setLoading(false);
+  };
+
+  const joinTeam = async () => {
+    setError(''); setLoading(true);
+    const tc = teamCode.trim().toUpperCase();
+    try {
+      const snap = await db.ref(`games/${roomCode}/teams/${tc}`).once('value');
+      if (!snap.exists()) { setError('Invalid team code. Ask your team leader for the correct code.'); setLoading(false); return; }
+      setMyTeamCode(tc);
+      setScreen('name');
+    } catch(e) { setError('Connection error. Please try again.'); }
+    setLoading(false);
+  };
+
+  const joinGame = async () => {
+    if (!playerName.trim()) return;
+    setLoading(true);
+    try {
+      const pid = genCode(8);
+      const teamSnap = await db.ref(`games/${roomCode}/teams/${myTeamCode}`).once('value');
+      const team = teamSnap.val();
+      await db.ref(`games/${roomCode}/players/${pid}`).set({
+        name: playerName.trim(),
+        teamCode: myTeamCode,
+        teamName: team?.name||myTeamCode
+      });
+      setPlayerId(pid);
+      // start listening to full game
+      const ref = db.ref(`games/${roomCode}`);
+      ref.on('value', snap=>{ if(snap.exists()) setGameState(snap.val()); });
+      listenerRef.current = ref;
+      setScreen('lobby');
+    } catch(e) { setError('Could not join game. Please try again.'); }
+    setLoading(false);
+  };
+
+  const buzzIn = async () => {
+    if (!gameState) return;
+    const teamData = gameState.teams?.[myTeamCode];
+    await db.ref(`games/${roomCode}/currentQ/buzzedTeam`).transaction(current => {
+      if (current===null||current===undefined||current==='') return myTeamCode;
+      return undefined;
+    });
+    await db.ref(`games/${roomCode}/currentQ/buzzedTeamName`).transaction(current => {
+      if (!current) return teamData?.name||myTeamCode;
+      return undefined;
+    });
+  };
+
+  const submitAnswer = async (ans) => {
+    await db.ref(`games/${roomCode}/currentQ/submittedAnswer`).set(ans);
+    setSubmitted(true);
+  };
+
+  const [ansText, setAnsText] = useState('');
+  useEffect(()=>{ setSubmitted(false); setAnsText(''); },[gameState?.currentQ?.index]);
+
+  if (!gameState && screen==='lobby') return (
+    <div className="app center">
+      <div style={{fontSize:'2rem',marginBottom:12}}>🎮</div>
+      <p style={{color:'rgba(255,255,255,.5)',fontSize:'1rem'}}>Connecting to game<span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/></p>
+    </div>
+  );
+
+  const g = gameState;
+  const status = g?.status;
+  const myTeam = g?.teams?.[myTeamCode];
+  const teamsArr = g ? toTeamsArr(g.teams) : [];
+  const sortedTeams = [...teamsArr].sort((a,b)=>b.score-a.score);
+  const qs = g ? toArr(g.questions) : [];
+  const q = g && qs.length>0 ? qs[g.currentQ?.index||0] : null;
+  const currentQ = g?.currentQ||{};
+  const isBuzzed = currentQ.buzzedTeam === myTeamCode;
+  const someoneElseBuzzed = currentQ.buzzedTeam && currentQ.buzzedTeam !== myTeamCode;
+
+  // auto-advance player screen based on game status
+  if (screen==='lobby' && (status==='playing'||status==='bonus'||status==='results')) {
+    if (status==='playing') setScreen('playing');
+    else if (status==='bonus') setScreen('bonus');
+    else if (status==='results') setScreen('results');
+  }
+  if (screen==='playing' && status==='bonus') setScreen('bonus');
+  if (screen==='bonus' && status==='playing') setScreen('playing');
+  if (screen==='playing' && status==='results') setScreen('results');
+  if (screen==='bonus' && status==='results') setScreen('results');
+
+  // ── PLAYER: JOIN ───────────────────────────────────────────────────────
+  if (screen==='join') return (
+    <div className="app center">
+      <h1 className="game-title" style={{fontSize:'clamp(2.5rem,8vw,4rem)',marginBottom:4}}>TRIVIA NIGHT</h1>
+      <p className="subtitle" style={{marginBottom:32}}>Enter your room code to join</p>
+      <div className="player-card">
+        <span className="label" style={{textAlign:'center',display:'block',marginBottom:12}}>Room Code</span>
+        <input className="inp inp-big" placeholder="e.g. ABC123" value={roomCode} maxLength={6}
+          onChange={e=>setRoomCode(e.target.value.toUpperCase())}
+          onKeyDown={e=>e.key==='Enter'&&joinRoom()}/>
+        {error&&<p style={{color:'#FF3B6B',fontSize:'.83rem',marginTop:10,textAlign:'center',fontWeight:700}}>{error}</p>}
+        <button className="btn btn-yellow btn-full" style={{marginTop:16}} onClick={joinRoom} disabled={roomCode.length<4||loading}>
+          {loading?'Checking…':'Join Game →'}
+        </button>
+        <button className="btn btn-ghost btn-full" style={{marginTop:10}} onClick={onExit}>← Back</button>
+      </div>
+    </div>
+  );
+
+  // ── PLAYER: TEAM CODE ──────────────────────────────────────────────────
+  if (screen==='teamcode') return (
+    <div className="app center">
+      <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:'#FFE600',marginBottom:4}}>Enter Team Code</h2>
+      <p style={{color:'rgba(255,255,255,.4)',marginBottom:28,fontSize:'.9rem'}}>Get this from your team leader</p>
+      <div className="player-card">
+        <span className="label" style={{textAlign:'center',display:'block',marginBottom:12}}>Team Code</span>
+        <input className="inp inp-big" placeholder="e.g. RED7" value={teamCode} maxLength={4}
+          onChange={e=>setTeamCode(e.target.value.toUpperCase())}
+          onKeyDown={e=>e.key==='Enter'&&joinTeam()}/>
+        {error&&<p style={{color:'#FF3B6B',fontSize:'.83rem',marginTop:10,textAlign:'center',fontWeight:700}}>{error}</p>}
+        <button className="btn btn-yellow btn-full" style={{marginTop:16}} onClick={joinTeam} disabled={teamCode.length<3||loading}>
+          {loading?'Checking…':'Confirm Team →'}
+        </button>
+        <button className="btn btn-ghost btn-full" style={{marginTop:10}} onClick={()=>{setScreen('join');setError('');}}>← Back</button>
+      </div>
+    </div>
+  );
+
+  // ── PLAYER: NAME ───────────────────────────────────────────────────────
+  if (screen==='name') return (
+    <div className="app center">
+      <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:'#FFE600',marginBottom:4}}>What's your name?</h2>
+      <p style={{color:'rgba(255,255,255,.4)',marginBottom:28,fontSize:'.9rem'}}>This is how you'll appear in the game</p>
+      <div className="player-card">
+        <input className="inp" style={{fontSize:'1.1rem',padding:'14px 16px',marginBottom:14,textAlign:'center'}}
+          placeholder="Your name…" value={playerName} onChange={e=>setPlayerName(e.target.value)}
+          onKeyDown={e=>e.key==='Enter'&&joinGame()}/>
+        {error&&<p style={{color:'#FF3B6B',fontSize:'.83rem',marginTop:10,textAlign:'center',fontWeight:700}}>{error}</p>}
+        <button className="btn btn-yellow btn-full" onClick={joinGame} disabled={!playerName.trim()||loading}>
+          {loading?'Joining…':'Join Game!'}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── PLAYER: LOBBY ──────────────────────────────────────────────────────
+  if (screen==='lobby') return (
+    <div className="app center">
+      <div style={{fontSize:'3rem',marginBottom:16}}>🎮</div>
+      <h2 style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:'#FFE600',marginBottom:6}}>You're in!</h2>
+      <p style={{color:'rgba(255,255,255,.45)',marginBottom:6}}>Hi <strong style={{color:'#fff'}}>{playerName}</strong>!</p>
+      {myTeam&&<div style={{display:'inline-flex',alignItems:'center',gap:8,padding:'8px 18px',borderRadius:50,background:`${myTeam.color}18`,border:`1.5px solid ${myTeam.color}35`,color:myTeam.color,fontWeight:800,marginBottom:28}}>{myTeam.name}</div>}
+      <div style={{display:'flex',alignItems:'center',gap:8,color:'rgba(255,255,255,.4)',fontSize:'.92rem'}}>
+        <span>Waiting for the host to start</span>
+        <span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/>
+      </div>
+    </div>
+  );
+
+  // ── PLAYER: PLAYING ────────────────────────────────────────────────────
+  if (screen==='playing') {
+    if (!q) return <div className="app center"><p style={{color:'rgba(255,255,255,.4)'}}>Loading question…</p></div>;
+
+    return (
+      <div className="app"><div className="pwrap">
+        {/* Score bar */}
+        <div className="player-score-row">
+          {teamsArr.map(t=>(
+            <div key={t.code} className="score-badge" style={{background:`${t.color}14`,color:t.color,borderColor:`${t.color}38`,border:`2px solid ${t.code===myTeamCode?t.color:`${t.color}38`}`}}>
+              <span style={{fontSize:'.7rem',opacity:.75}}>{t.name}</span><strong>{t.score||0}</strong>
+              {t.code===myTeamCode&&<span style={{fontSize:'.65rem',opacity:.7}}>YOU</span>}
+            </div>
+          ))}
+          <span style={{marginLeft:'auto',fontSize:'.78rem',color:'rgba(255,255,255,.3)',flexShrink:0}}>Q {(currentQ.index||0)+1}/{qs.length}</span>
+        </div>
+
+        <div className="prog-bar"><div className="prog-fill" style={{width:`${((currentQ.index||0)/Math.max(qs.length,1))*100}%`}}/></div>
+
+        {/* Question card */}
+        <div className="card">
+          <div className="row" style={{justifyContent:'space-between',marginBottom:14}}>
+            <span className="qtype-badge" style={{background:`${TC[q.type]}15`,color:TC[q.type],borderColor:`${TC[q.type]}35`}}>{TL[q.type]}</span>
+            <span className="tag" style={{background:'rgba(255,230,0,.1)',color:'#FFE600',border:'1px solid rgba(255,230,0,.2)'}}>{q.points} pts</span>
+          </div>
+          <div style={{fontSize:'clamp(.95rem,3vw,1.15rem)',fontWeight:900,lineHeight:1.5,marginBottom:22}}>{q.question}</div>
+
+          {currentQ.phase==='question'&&(
+            <>
+              {/* Multiple choice - players see options but can't click */}
+              {q.type==='multiple'&&q.options&&(
+                <div style={{marginBottom:16}}>
+                  {q.options.map((opt,i)=>(
+                    <div key={i} className="opt opt-player" style={{cursor:'default',opacity:.75}}>
+                      <span className="letter">{LETTERS[i]}</span>{opt}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Text answer */}
+              {q.type==='text'&&!submitted&&(
+                <div style={{marginBottom:14}}>
+                  <input className="inp" style={{fontSize:'1rem',padding:'13px 16px',marginBottom:10}}
+                    placeholder="Type your team's answer…" value={ansText} onChange={e=>setAnsText(e.target.value)}/>
+                  <button className="btn btn-yellow btn-full" onClick={()=>submitAnswer(ansText)} disabled={!ansText.trim()}>Submit Answer</button>
+                </div>
+              )}
+              {q.type==='text'&&submitted&&(
+                <div style={{padding:14,borderRadius:12,background:'rgba(50,215,75,.1)',border:'1.5px solid rgba(50,215,75,.25)',color:'#32D74B',fontWeight:800,marginBottom:14,textAlign:'center'}}>
+                  ✓ Answer submitted! Waiting for host…
+                </div>
+              )}
+
+              {/* Buzzer */}
+              {q.type==='buzzer'&&(
+                <>
+                  {!currentQ.buzzedTeam && (
+                    <button className="buzz-btn"
+                      style={{borderColor:myTeam?.color||'#FFE600',background:`${myTeam?.color||'#FFE600'}18`,color:myTeam?.color||'#FFE600'}}
+                      onClick={buzzIn}>
+                      🔔 BUZZ IN!
+                    </button>
+                  )}
+                  {isBuzzed&&(
+                    <div>
+                      <div style={{padding:14,borderRadius:12,background:`${myTeam?.color||'#FFE600'}18`,border:`2px solid ${myTeam?.color||'#FFE600'}`,color:myTeam?.color||'#FFE600',fontWeight:900,fontSize:'1.1rem',textAlign:'center',marginBottom:12}}>
+                        🔔 YOUR TEAM BUZZED IN!
+                      </div>
+                      {!submitted?(
+                        <div>
+                          <input className="inp" style={{fontSize:'1rem',padding:'13px 16px',marginBottom:10}}
+                            placeholder="Type your answer…" value={ansText} onChange={e=>setAnsText(e.target.value)}/>
+                          <button className="btn btn-yellow btn-full" onClick={()=>submitAnswer(ansText)} disabled={!ansText.trim()}>Submit Answer</button>
+                        </div>
+                      ):(
+                        <div style={{padding:12,borderRadius:12,background:'rgba(50,215,75,.1)',border:'1.5px solid rgba(50,215,75,.25)',color:'#32D74B',fontWeight:800,textAlign:'center'}}>
+                          ✓ Answer submitted!
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {someoneElseBuzzed&&(
+                    <div style={{padding:14,borderRadius:12,background:'rgba(255,59,107,.08)',border:'1.5px solid rgba(255,59,107,.2)',color:'rgba(255,255,255,.6)',fontWeight:700,textAlign:'center'}}>
+                      {currentQ.buzzedTeamName||'Another team'} buzzed in first!
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+
+          {currentQ.phase==='reveal'&&(
+            <div className="fade">
+              <div className="correct-box">
+                <div style={{fontSize:'.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(50,215,75,.6)',marginBottom:5}}>Correct Answer</div>
+                <div style={{fontSize:'1.15rem',fontWeight:900,color:'#32D74B'}}>{q.answer}</div>
+              </div>
+              {q.type==='multiple'&&q.options&&q.options.map((opt,i)=>(
+                <div key={i} className={`opt opt-player ${opt===q.answer?'right':''}`} style={{cursor:'default'}}>
+                  <span className="letter">{LETTERS[i]}</span>{opt}
+                  {opt===q.answer&&<span style={{marginLeft:'auto',color:'#32D74B',fontWeight:900}}>✓</span>}
+                </div>
+              ))}
+              <div style={{padding:12,borderRadius:12,background:'rgba(255,255,255,.05)',marginTop:12,textAlign:'center',fontSize:'.85rem',color:'rgba(255,255,255,.45)'}}>
+                Waiting for host to award points…
+              </div>
+            </div>
+          )}
+        </div>
+      </div></div>
+    );
+  }
+
+  // ── PLAYER: BONUS ──────────────────────────────────────────────────────
+  if (screen==='bonus') {
+    const br = g?.bonusRound;
+    return (
+      <div className="app center">
+        <div style={{marginBottom:14}}>
+          <span className="tag" style={{background:'rgba(255,159,10,.18)',color:'#FF9F0A',border:'1px solid rgba(255,159,10,.35)',fontSize:'.85rem',padding:'6px 16px'}}>BONUS ROUND!</span>
+        </div>
+        <div className="bonus-wrap">
+          <span className="bonus-emoji">{br?.emoji||'🎯'}</span>
+          <h2 className="bonus-title">{br?.title}</h2>
+          <p className="bonus-desc">{br?.description}</p>
+          <div style={{padding:12,borderRadius:12,background:'rgba(255,255,255,.07)',fontSize:'.85rem',color:'rgba(255,255,255,.5)'}}>
+            Waiting for host to award points<span className="waiting-dot"/><span className="waiting-dot"/><span className="waiting-dot"/>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── PLAYER: RESULTS ────────────────────────────────────────────────────
+  if (screen==='results') {
+    const medals=['🥇','🥈','🥉','4️⃣'];
+    return (
+      <div className="app">
+        <div style={{maxWidth:480,margin:'0 auto',paddingTop:20,textAlign:'center'}}>
+          <div style={{fontSize:'3rem',marginBottom:8}}>🎉</div>
+          <h1 className="game-title" style={{fontSize:'clamp(2.5rem,8vw,4rem)',marginBottom:4}}>Game Over!</h1>
+          <p className="subtitle" style={{marginBottom:28}}>Final Leaderboard</p>
+          {sortedTeams.map((t,i)=>(
+            <div key={t.code} className="lb-row fade"
+              style={{border:t.code===myTeamCode?`2px solid ${t.color}`:i===0?`2px solid ${t.color}`:'1px solid rgba(255,255,255,.07)',
+                background:i===0?`${t.color}10`:'rgba(255,255,255,.03)'}}>
+              <div className="lb-rank" style={{background:i===0?`${t.color}22`:'rgba(255,255,255,.07)',color:i===0?t.color:'rgba(255,255,255,.4)'}}>{i===0?'👑':medals[i]}</div>
+              <div style={{flex:1,textAlign:'left'}}>
+                <div style={{fontWeight:900}}>{t.name}{t.code===myTeamCode&&<span style={{marginLeft:8,fontSize:'.75rem',color:'rgba(255,255,255,.4)',fontWeight:700}}>YOUR TEAM</span>}</div>
+                <div style={{fontSize:'.77rem',color:'rgba(255,255,255,.35)'}}>Leader: {t.leader}</div>
+              </div>
+              <div style={{fontFamily:"'Boogaloo',cursive",fontSize:'2rem',color:i===0?t.color:'rgba(255,255,255,.6)'}}>{t.score||0}</div>
+            </div>
+          ))}
+          <button className="btn btn-yellow" style={{marginTop:28}} onClick={onExit}>Play Again</button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
 </script>
 </body>
 </html>
